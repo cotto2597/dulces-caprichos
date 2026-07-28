@@ -1,0 +1,2231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dulces Caprichos MDP · Pastelería, Talleres y Festejos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DULCES CAPRICHOS MDP — Sistema de diseño v2
+   Paleta tomada del logo real: rosa chicle + marrón chocolate
+   sobre fondo durazno pálido. Tipografía cálida y redondeada.
+   ============================================================ */
+
+:root{
+  --peach:#FBEDE6;
+  --peach-deep:#F5E0D5;
+  --choc:#4A3428;
+  --choc-soft:#6B4F3F;
+  --brown:#8B6F5C;
+  --brown-light:#C2A895;
+  --pink:#E8759A;
+  --pink-soft:#F3B8CC;
+  --pink-pale:#FBE2EA;
+  --pink-deep:#D45F84;
+  --white:#FFFFFF;
+  --sage:#8FAA8B;
+  --sage-bg:#E9F1E7;
+  --gold:#D9A441;
+  --gold-bg:#FBF2E0;
+  --danger:#C77B6B;
+  --danger-bg:#FBEAE6;
+  --info:#7B93B0;
+  --info-bg:#EAF0F7;
+
+  --shadow-sm: 0 2px 8px rgba(74,52,40,0.07);
+  --shadow-md: 0 8px 24px rgba(74,52,40,0.10);
+  --shadow-lg: 0 16px 40px rgba(74,52,40,0.16);
+
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 26px;
+
+  --sidebar-w: 264px;
+  --transition: 220ms cubic-bezier(.4,0,.2,1);
+}
+
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth;}
+
+body{
+  font-family:'Poppins', sans-serif;
+  background:var(--peach);
+  color:var(--choc);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+
+h1,h2,h3,h4{
+  font-family:'Fredoka', sans-serif;
+  color:var(--choc);
+  font-weight:600;
+  letter-spacing:-0.01em;
+}
+
+::selection{ background:var(--pink-soft); color:var(--choc); }
+::-webkit-scrollbar{ width:8px; height:8px; }
+::-webkit-scrollbar-track{ background:transparent; }
+::-webkit-scrollbar-thumb{ background:var(--brown-light); border-radius:10px; }
+::-webkit-scrollbar-thumb:hover{ background:var(--brown); }
+
+a{ color:inherit; text-decoration:none; }
+button{ font-family:inherit; cursor:pointer; }
+button:disabled{ cursor:not-allowed; opacity:0.6; }
+
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; scroll-behavior:auto !important; }
+}
+
+/* Festón ondulado — motivo de firma reutilizable (borde tipo repostería) */
+.scallop-edge{
+  position:relative;
+}
+.scallop-edge::after{
+  content:"";
+  position:absolute;
+  left:0; right:0; bottom:-9px;
+  height:16px;
+  background:
+    radial-gradient(circle at 10px 0, transparent 8px, var(--white) 8.5px) 0 -8px/20px 16px repeat-x;
+}
+
+/* ============================================================
+   Cards & reusable primitives
+   ============================================================ */
+.card{
+  background:var(--white);
+  border-radius:var(--radius-md);
+  box-shadow:var(--shadow-sm);
+  transition:box-shadow var(--transition), transform var(--transition);
+}
+
+.btn{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:11px 22px; border-radius:14px;
+  font-size:13.5px; font-weight:600; border:none;
+  transition:transform var(--transition), box-shadow var(--transition), background var(--transition);
+  white-space:nowrap; font-family:inherit;
+}
+.btn-primary{
+  background:linear-gradient(135deg, var(--pink), var(--pink-deep));
+  color:var(--white);
+  box-shadow:var(--shadow-sm);
+}
+.btn-primary:hover:not(:disabled){ transform:translateY(-2px); box-shadow:var(--shadow-md); }
+.btn-secondary{
+  background:var(--white); color:var(--choc);
+  border:1px solid rgba(74,52,40,0.14);
+}
+.btn-secondary:hover{ background:var(--peach-deep); }
+.btn-ghost{ background:transparent; color:var(--brown); padding:8px 12px; }
+.btn-ghost:hover{ color:var(--choc); background:var(--peach-deep); }
+.btn-sm{ padding:8px 15px; font-size:12.5px; border-radius:11px; }
+.btn:active:not(:disabled){ transform:scale(0.97); }
+
+.badge{
+  display:inline-flex; align-items:center; gap:5px;
+  padding:5px 12px; border-radius:20px;
+  font-size:11.5px; font-weight:600; white-space:nowrap;
+}
+.badge::before{ content:""; width:6px; height:6px; border-radius:50%; background:currentColor; }
+.badge-ok{ background:var(--sage-bg); color:var(--sage); }
+.badge-warn{ background:var(--gold-bg); color:var(--gold); }
+.badge-danger{ background:var(--danger-bg); color:var(--danger); }
+.badge-info{ background:var(--info-bg); color:var(--info); }
+.badge-pink{ background:var(--pink-pale); color:var(--pink-deep); }
+
+.chip{
+  padding:9px 17px; border-radius:20px; font-size:12.5px; font-weight:600;
+  border:1px solid rgba(74,52,40,0.14); background:var(--white); color:var(--brown);
+  transition:all var(--transition);
+}
+.chip:hover{ background:var(--peach-deep); }
+.chip.active{ background:linear-gradient(135deg, var(--pink), var(--pink-deep)); color:var(--white); border-color:transparent; }
+
+.form-group{ margin-bottom:16px; }
+.form-group label{ display:block; font-size:12.5px; font-weight:600; color:var(--brown); margin-bottom:6px; }
+.form-group input, .form-group select, .form-group textarea{
+  width:100%; padding:11px 14px; border-radius:12px;
+  border:1px solid rgba(74,52,40,0.15); background:var(--peach);
+  font-family:inherit; font-size:13.5px; color:var(--choc);
+  transition:border-color var(--transition), box-shadow var(--transition);
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus{
+  outline:none; border-color:var(--pink-deep); box-shadow:0 0 0 3px rgba(232,117,154,0.22);
+}
+.form-row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.form-hint{ font-size:11.5px; color:var(--brown-light); margin-top:4px; }
+
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible{
+  outline:2px solid var(--pink-deep); outline-offset:2px;
+}
+
+/* ============================================================
+   MODO CLIENTE — shell general
+   ============================================================ */
+.client-shell{ display:none; min-height:100vh; flex-direction:column; }
+.client-shell.active{ display:flex; }
+
+.client-topbar{
+  position:sticky; top:0; z-index:60;
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  padding:16px 40px;
+  background:rgba(251,237,230,0.9);
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid rgba(74,52,40,0.08);
+}
+.client-brand{ display:flex; align-items:center; gap:12px; }
+.brand-mark{
+  width:44px; height:44px; border-radius:50%;
+  background:linear-gradient(135deg, var(--pink), var(--pink-deep));
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px; flex-shrink:0; box-shadow:var(--shadow-sm);
+}
+.client-brand .brand-text h1{ font-size:19px; margin:0; line-height:1.1; }
+.client-brand .brand-text span{ font-size:10.5px; color:var(--brown); font-weight:500; letter-spacing:0.02em; }
+
+.client-nav{ display:flex; gap:5px; background:var(--white); padding:5px; border-radius:16px; box-shadow:var(--shadow-sm); }
+.client-nav-item{
+  padding:10px 18px; border:none; background:transparent; border-radius:11px;
+  font-size:13px; font-weight:600; color:var(--brown);
+  transition:background var(--transition), color var(--transition);
+}
+.client-nav-item:hover{ color:var(--choc); }
+.client-nav-item.active{ background:linear-gradient(135deg, var(--pink), var(--pink-deep)); color:var(--white); }
+
+.client-topbar-actions{ display:flex; align-items:center; gap:8px; }
+.staff-icon-btn{
+  width:40px; height:40px; border-radius:50%;
+  border:1px solid rgba(74,52,40,0.12); background:var(--white);
+  display:flex; align-items:center; justify-content:center;
+  font-size:15px; color:var(--brown);
+  transition:transform var(--transition), box-shadow var(--transition), color var(--transition);
+}
+.staff-icon-btn:hover{ transform:translateY(-2px); box-shadow:var(--shadow-sm); color:var(--choc); }
+
+.client-hamburger{
+  display:none; width:42px; height:42px; border-radius:12px;
+  border:1px solid rgba(74,52,40,0.12); background:var(--white);
+  font-size:18px; color:var(--choc); align-items:center; justify-content:center;
+}
+.client-mobile-nav{ display:none; flex-direction:column; gap:4px; padding:10px 16px 16px; background:var(--white); border-bottom:1px solid rgba(74,52,40,0.08); }
+.client-mobile-nav.open{ display:flex; }
+.client-mobile-nav .client-nav-item{ text-align:left; padding:12px 14px; }
+.client-mobile-nav .client-nav-item.active{ background:var(--pink-pale); color:var(--pink-deep); }
+
+.client-main{ flex:1; max-width:1180px; width:100%; margin:0 auto; padding:32px 40px 70px; }
+.cview{ display:none; animation:fadeInUp 380ms cubic-bezier(.4,0,.2,1); }
+.cview.active{ display:block; }
+@keyframes fadeInUp{ from{ opacity:0; transform:translateY(10px);} to{ opacity:1; transform:translateY(0);} }
+
+.client-hero{ margin-bottom:26px; max-width:680px; }
+.client-hero h2{ font-size:29px; margin-bottom:8px; }
+.client-hero p{ font-size:14.5px; color:var(--brown); line-height:1.6; }
+
+/* ---------- Footer con sucursales ---------- */
+.client-footer{
+  padding:36px 40px 30px;
+  border-top:1px solid rgba(74,52,40,0.08);
+  background:var(--white);
+}
+.footer-grid{
+  max-width:1180px; margin:0 auto;
+  display:grid; grid-template-columns:1.3fr 1fr 1fr; gap:32px;
+  margin-bottom:24px;
+}
+.footer-brand h3{ font-size:18px; margin-bottom:8px; }
+.footer-brand p{ font-size:12.5px; color:var(--brown); line-height:1.6; }
+.footer-col h4{ font-size:13px; margin-bottom:12px; color:var(--choc); font-family:'Poppins',sans-serif; font-weight:600; }
+.sucursal-item{ display:flex; gap:10px; margin-bottom:14px; align-items:flex-start; }
+.sucursal-pin{ font-size:16px; flex-shrink:0; margin-top:1px; }
+.sucursal-item .s-name{ font-size:13px; font-weight:600; color:var(--choc); }
+.sucursal-item .s-addr{ font-size:12px; color:var(--brown); margin-top:2px; }
+.footer-bottom{
+  max-width:1180px; margin:0 auto; padding-top:20px;
+  border-top:1px dashed rgba(74,52,40,0.15);
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
+}
+.footer-bottom p{ font-size:11.5px; color:var(--brown-light); }
+.staff-access-link{
+  border:none; background:transparent; font-size:11.5px; color:var(--brown-light);
+  font-weight:500; padding:6px 10px; border-radius:8px;
+  transition:color var(--transition), background var(--transition);
+}
+.staff-access-link:hover{ color:var(--choc); background:var(--peach-deep); }
+
+@media (max-width:900px){
+  .client-nav{ display:none; }
+  .client-hamburger{ display:flex; }
+  .client-topbar{ padding:14px 20px; }
+  .client-main{ padding:24px 20px 60px; }
+  .footer-grid{ grid-template-columns:1fr; gap:24px; }
+  .client-footer{ padding:28px 20px 24px; }
+}
+@media (max-width:560px){
+  .client-hero h2{ font-size:23px; }
+}
+
+/* ============================================================
+   TABS internas de sección Eventos (Talleres / Cumpleaños)
+   ============================================================ */
+.subtabs{ display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; }
+.subtab{
+  padding:10px 20px; border-radius:14px; font-size:13px; font-weight:600;
+  border:1px solid rgba(74,52,40,0.14); background:var(--white); color:var(--brown);
+  transition:all var(--transition);
+}
+.subtab:hover{ background:var(--peach-deep); }
+.subtab.active{ background:linear-gradient(135deg, var(--pink), var(--pink-deep)); color:var(--white); border-color:transparent; }
+
+/* ============================================================
+   TALLERES — cards
+   ============================================================ */
+.grid-talleres{ display:grid; grid-template-columns:repeat(auto-fill, minmax(272px, 1fr)); gap:20px; }
+.taller-card{ overflow:hidden; display:flex; flex-direction:column; cursor:pointer; }
+.taller-card:hover{ transform:translateY(-4px); box-shadow:var(--shadow-md); }
+.taller-card.agotado{ cursor:default; }
+.taller-card.agotado:hover{ transform:none; box-shadow:var(--shadow-sm); }
+.taller-img{
+  height:150px; display:flex; align-items:center; justify-content:center;
+  font-size:46px; position:relative; overflow:hidden;
+}
+.taller-img img{ width:100%; height:100%; object-fit:cover; }
+.taller-img .badge{ position:absolute; top:12px; right:12px; background:var(--white); }
+.taller-img .sucursal-tag{
+  position:absolute; top:12px; left:12px;
+  background:rgba(74,52,40,0.75); color:var(--white);
+  font-size:10px; font-weight:600; padding:4px 10px; border-radius:20px;
+}
+.taller-body{ padding:18px; display:flex; flex-direction:column; gap:8px; flex:1; }
+.taller-body h4{ font-size:16px; }
+.taller-profe{ display:flex; align-items:center; gap:6px; font-size:12px; color:var(--pink-deep); font-weight:600; }
+.taller-meta{ display:flex; flex-direction:column; gap:5px; font-size:12.5px; color:var(--brown); }
+.taller-meta span{ display:flex; align-items:center; gap:6px; }
+.taller-desc{ font-size:12.5px; color:var(--brown); line-height:1.5; margin-top:2px; }
+.taller-footer{ display:flex; align-items:center; justify-content:space-between; margin-top:8px; padding-top:12px; border-top:1px dashed rgba(74,52,40,0.14); }
+.taller-price{ font-family:'Fredoka', sans-serif; font-weight:700; color:var(--choc); font-size:18px; }
+.cupos-bar{ height:6px; border-radius:6px; background:var(--peach-deep); overflow:hidden; margin-top:4px; }
+.cupos-fill{ height:100%; border-radius:6px; background:linear-gradient(90deg, var(--pink), var(--pink-deep)); }
+.taller-cta{ width:100%; justify-content:center; margin-top:4px; }
+
+/* ============================================================
+   CUMPLEAÑOS — modalidades (merienda / yeso)
+   ============================================================ */
+.modalidad-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:22px; margin-bottom:30px; }
+.modalidad-card{ overflow:hidden; }
+.modalidad-img{
+  height:170px; display:flex; align-items:center; justify-content:center; font-size:52px;
+}
+.modalidad-body{ padding:22px; }
+.modalidad-body h3{ font-size:19px; margin-bottom:8px; }
+.modalidad-body p{ font-size:13px; color:var(--brown); line-height:1.6; margin-bottom:14px; }
+.modalidad-facts{ display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
+.modalidad-facts span{ font-size:12.5px; color:var(--choc-soft); display:flex; align-items:center; gap:8px; }
+.modalidad-price{ font-family:'Fredoka', sans-serif; font-size:20px; font-weight:700; color:var(--pink-deep); margin-bottom:14px; }
+.modalidad-includes{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; }
+.include-pill{ font-size:11px; background:var(--peach-deep); color:var(--choc-soft); padding:5px 11px; border-radius:14px; font-weight:500; }
+
+/* ============================================================
+   PRODUCTOS — catálogo (solo referencia)
+   ============================================================ */
+.grid-productos{ display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:18px; }
+.producto-card{ overflow:hidden; display:flex; flex-direction:column; }
+.producto-card:hover{ transform:translateY(-4px); box-shadow:var(--shadow-md); }
+.producto-img{ height:120px; display:flex; align-items:center; justify-content:center; font-size:40px; overflow:hidden; }
+.producto-img img{ width:100%; height:100%; object-fit:cover; }
+.producto-body{ padding:16px; display:flex; flex-direction:column; gap:6px; }
+.producto-cat{ font-size:10.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--pink-deep); font-weight:700; }
+.producto-body h4{ font-size:14.5px; font-family:'Poppins',sans-serif; font-weight:600; }
+.producto-footer{ display:flex; align-items:center; justify-content:space-between; margin-top:6px; }
+.producto-price{ font-family:'Fredoka', sans-serif; font-weight:700; color:var(--choc); font-size:16px; }
+.catalogo-note{
+  background:var(--pink-pale); color:var(--pink-deep); font-size:12.5px; font-weight:500;
+  padding:12px 18px; border-radius:14px; margin-bottom:22px; display:flex; align-items:center; gap:8px;
+}
+
+/* ============================================================
+   CALENDARIO (compartido cliente / admin)
+   ============================================================ */
+.legend-item{ display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--brown); font-weight:500; }
+.legend-dot{ width:9px; height:9px; border-radius:50%; }
+.calendar-grid{ display:grid; grid-template-columns:repeat(7, minmax(110px, 1fr)); gap:6px; min-width:760px; }
+.cal-dow{ font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--brown); font-weight:700; text-align:center; padding:8px 0; }
+.cal-day{ min-height:100px; border-radius:14px; background:var(--peach-deep); padding:8px; display:flex; flex-direction:column; gap:4px; transition:background var(--transition); }
+.cal-day.empty{ background:transparent; }
+.cal-day.has-events{ cursor:pointer; }
+.cal-day.has-events:hover{ background:#F2D9CB; }
+.cal-day.today{ box-shadow:inset 0 0 0 2px var(--pink-deep); }
+.cal-daynum{ font-size:12px; font-weight:700; color:var(--choc); }
+.cal-event{ font-size:10px; padding:3px 7px; border-radius:7px; color:var(--white); font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cal-more{ font-size:10px; color:var(--brown); font-weight:600; padding-left:4px; }
+
+/* ============================================================
+   MODAL genérico (compartido)
+   ============================================================ */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(74,52,40,0.4); backdrop-filter:blur(3px);
+  display:none; align-items:center; justify-content:center; z-index:1000; padding:20px;
+}
+.modal-overlay.active{ display:flex; animation:fadeIn 200ms ease; }
+@keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+.modal{
+  background:var(--white); border-radius:var(--radius-lg); max-width:500px; width:100%;
+  max-height:88vh; overflow-y:auto; box-shadow:var(--shadow-lg);
+  animation:modalPop 260ms cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes modalPop{ from{ opacity:0; transform:scale(0.94) translateY(10px);} to{ opacity:1; transform:scale(1) translateY(0);} }
+.modal-header{ padding:22px 26px; border-bottom:1px solid rgba(74,52,40,0.08); display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.modal-header h3{ font-size:18px; }
+.modal-close{ width:32px; height:32px; border-radius:50%; border:none; background:var(--peach-deep); color:var(--choc); font-size:15px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.modal-close:hover{ background:var(--pink-soft); }
+.modal-body{ padding:22px 26px; }
+.modal-footer{ padding:18px 26px 24px; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap; border-top:1px solid rgba(74,52,40,0.06); }
+.modal-body p{ font-size:14px; color:var(--choc-soft); line-height:1.7; margin-bottom:8px; }
+.modal-detail-row{ display:flex; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px dashed rgba(74,52,40,0.1); font-size:13.5px; }
+.modal-detail-row span:first-child{ color:var(--brown); }
+.modal-detail-row span:last-child{ color:var(--choc); font-weight:600; text-align:right; }
+.modal-taller-img{ width:100%; height:170px; border-radius:14px; overflow:hidden; margin-bottom:16px; display:flex; align-items:center; justify-content:center; font-size:52px; }
+.modal-taller-img img{ width:100%; height:100%; object-fit:cover; }
+
+/* ---------- Flujo de reserva / seña ---------- */
+.reserva-resumen{ background:var(--peach); border-radius:14px; padding:16px 18px; margin-bottom:18px; }
+.seña-box{
+  background:var(--pink-pale); border:1.5px dashed var(--pink-deep); border-radius:14px;
+  padding:16px 18px; margin:16px 0; text-align:center;
+}
+.seña-box .seña-monto{ font-family:'Fredoka',sans-serif; font-size:24px; font-weight:700; color:var(--pink-deep); margin:4px 0; }
+.seña-box p{ font-size:12px; color:var(--choc-soft); margin:0; }
+.mp-btn{
+  width:100%; justify-content:center; margin-top:10px;
+  background:linear-gradient(135deg, #00B1EA, #009EE3); color:var(--white);
+}
+.mp-btn:hover:not(:disabled){ transform:translateY(-2px); box-shadow:var(--shadow-md); }
+.reserva-estado{
+  display:flex; align-items:center; gap:10px; padding:14px 18px; border-radius:14px; margin-bottom:16px;
+}
+.reserva-estado.pendiente{ background:var(--gold-bg); color:var(--gold); }
+.reserva-estado.confirmada{ background:var(--sage-bg); color:var(--sage); }
+.reserva-estado .re-icon{ font-size:20px; }
+.reserva-estado .re-text strong{ display:block; font-size:13px; color:var(--choc); }
+.reserva-estado .re-text span{ font-size:11.5px; }
+.whatsapp-btn{
+  width:100%; justify-content:center; margin-top:8px;
+  background:linear-gradient(135deg, #25D366, #1DA851); color:var(--white);
+}
+.whatsapp-btn:hover:not(:disabled){ transform:translateY(-2px); box-shadow:var(--shadow-md); }
+
+/* ============================================================
+   LOGIN OVERLAY
+   ============================================================ */
+.login-overlay{
+  position:fixed; inset:0; z-index:1500; background:rgba(74,52,40,0.42); backdrop-filter:blur(4px);
+  display:none; align-items:center; justify-content:center; padding:20px;
+}
+.login-overlay.active{ display:flex; animation:fadeIn 200ms ease; }
+.login-card{
+  background:var(--white); border-radius:var(--radius-lg); max-width:380px; width:100%;
+  padding:36px 32px 28px; box-shadow:var(--shadow-lg); position:relative; text-align:center;
+  animation:modalPop 260ms cubic-bezier(.34,1.56,.64,1);
+}
+.login-close{ position:absolute; top:16px; right:16px; }
+.login-brand-mark{ width:56px; height:56px; font-size:26px; margin:0 auto 16px; }
+.login-card h3{ font-size:19px; margin-bottom:6px; }
+.login-sub{ font-size:12.5px; color:var(--brown); margin-bottom:22px; line-height:1.5; }
+.login-card form{ text-align:left; }
+.login-submit{ width:100%; justify-content:center; margin-top:6px; }
+.login-error{ display:none; font-size:12px; color:var(--danger); background:var(--danger-bg); padding:9px 12px; border-radius:9px; margin-bottom:14px; text-align:left; }
+.login-error.show{ display:block; }
+.login-hint{ font-size:11px; color:var(--brown-light); margin-top:18px; line-height:1.6; }
+
+/* ============================================================
+   TOASTS
+   ============================================================ */
+.toast-stack{ position:fixed; bottom:24px; right:24px; z-index:2000; display:flex; flex-direction:column; gap:10px; max-width:340px; }
+.toast{
+  background:var(--choc); color:var(--peach); padding:14px 20px; border-radius:14px;
+  font-size:13px; font-weight:500; box-shadow:var(--shadow-lg);
+  display:flex; align-items:center; gap:10px; animation:toastIn 280ms cubic-bezier(.34,1.56,.64,1);
+}
+.toast .toast-icon{ color:var(--pink-soft); font-size:16px; flex-shrink:0; }
+@keyframes toastIn{ from{ opacity:0; transform:translateY(12px) scale(0.95);} to{ opacity:1; transform:translateY(0) scale(1);} }
+.toast.hide{ animation:toastOut 250ms ease forwards; }
+@keyframes toastOut{ to{ opacity:0; transform:translateX(20px);} }
+
+@media (max-width:640px){
+  .form-row{ grid-template-columns:1fr; }
+  .modalidad-grid{ grid-template-columns:1fr; }
+}
+
+/* ============================================================
+   PANEL ADMIN
+   ============================================================ */
+.app-shell{ display:none; min-height:100vh; }
+.app-shell.active{ display:flex; }
+
+.sidebar{
+  width:var(--sidebar-w); flex-shrink:0; background:var(--white);
+  border-right:1px solid rgba(74,52,40,0.07); display:flex; flex-direction:column;
+  position:fixed; top:0; left:0; bottom:0; z-index:100; transition:transform var(--transition);
+}
+.sidebar-brand{
+  padding:26px 22px 20px; position:relative; display:flex; align-items:center; gap:12px;
+  border-bottom:1px solid rgba(74,52,40,0.07);
+}
+.sidebar-brand::after{
+  content:""; position:absolute; left:0; right:0; bottom:-9px; height:16px;
+  background:radial-gradient(circle at 10px 0, transparent 8px, var(--white) 8.5px) 0 -8px/20px 16px repeat-x;
+}
+.sidebar-brand .brand-text h1{ font-size:17px; margin:0; line-height:1.2; }
+.sidebar-brand .brand-text span{ font-size:10.5px; color:var(--brown); letter-spacing:0.03em; text-transform:uppercase; font-weight:500; }
+
+.sidebar-nav{ flex:1; padding:22px 14px; display:flex; flex-direction:column; gap:3px; overflow-y:auto; margin-top:6px; }
+.nav-item{
+  display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:13px;
+  color:var(--choc-soft); font-size:14px; font-weight:500; border:none; background:transparent;
+  width:100%; text-align:left; position:relative;
+  transition:background var(--transition), color var(--transition), transform var(--transition);
+}
+.nav-item .nav-icon{ font-size:18px; width:22px; text-align:center; flex-shrink:0; }
+.nav-item:hover{ background:var(--peach-deep); color:var(--choc); transform:translateX(2px); }
+.nav-item.active{ background:linear-gradient(135deg, rgba(232,117,154,0.16), rgba(232,117,154,0.06)); color:var(--choc); font-weight:600; }
+.nav-item.active::before{
+  content:""; position:absolute; left:-14px; top:50%; transform:translateY(-50%);
+  height:22px; width:4px; background:linear-gradient(180deg, var(--pink), var(--pink-deep)); border-radius:0 4px 4px 0;
+}
+.sidebar-footer{ padding:16px 20px 22px; border-top:1px solid rgba(74,52,40,0.07); }
+.user-chip{ display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:13px; background:var(--peach-deep); }
+.user-avatar{
+  width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg, var(--choc-soft), var(--brown));
+  color:var(--peach); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; flex-shrink:0;
+}
+.user-chip .u-name{ font-size:13px; font-weight:600; color:var(--choc); }
+.user-chip .u-role{ font-size:11px; color:var(--brown); }
+.exit-admin-btn{
+  width:100%; margin-top:10px; padding:9px 12px; border-radius:12px;
+  border:1px solid rgba(74,52,40,0.12); background:transparent;
+  font-size:12px; font-weight:600; color:var(--brown);
+  transition:background var(--transition), color var(--transition);
+}
+.exit-admin-btn:hover{ background:var(--peach-deep); color:var(--choc); }
+
+.main-content{ margin-left:var(--sidebar-w); flex:1; min-width:0; display:flex; flex-direction:column; }
+.topbar{
+  position:sticky; top:0; z-index:40; background:rgba(251,237,230,0.88);
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  padding:18px 36px; display:flex; align-items:center; justify-content:space-between; gap:16px;
+  border-bottom:1px solid rgba(74,52,40,0.06);
+}
+.hamburger{
+  display:none; width:40px; height:40px; border-radius:12px; border:1px solid rgba(74,52,40,0.12);
+  background:var(--white); align-items:center; justify-content:center; flex-shrink:0; font-size:18px; color:var(--choc);
+}
+.topbar-title h2{ font-size:22px; margin:0; }
+.topbar-title p{ font-size:13px; color:var(--brown); margin-top:2px; }
+.topbar-actions{ display:flex; align-items:center; gap:14px; }
+.icon-btn{
+  width:40px; height:40px; border-radius:50%; border:1px solid rgba(74,52,40,0.1); background:var(--white);
+  display:flex; align-items:center; justify-content:center; font-size:16px; position:relative;
+  transition:transform var(--transition), box-shadow var(--transition);
+}
+.icon-btn:hover{ transform:translateY(-2px); box-shadow:var(--shadow-sm); }
+.icon-btn .dot{ position:absolute; top:6px; right:7px; width:8px; height:8px; border-radius:50%; background:var(--pink-deep); border:2px solid var(--white); }
+
+.view{ padding:30px 36px 60px; display:none; animation:fadeInUp 380ms cubic-bezier(.4,0,.2,1); }
+.view.active{ display:block; }
+
+.section-heading{ display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:20px; gap:16px; flex-wrap:wrap; }
+.section-heading h3{ font-size:19px; }
+.section-heading .sub{ font-size:13px; color:var(--brown); margin-top:3px; }
+
+/* ---------- Stats (livianas, no protagonistas) ---------- */
+.stats-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:16px; margin-bottom:26px; }
+.stat-card{ padding:18px 20px; position:relative; overflow:hidden; }
+.stat-card:hover{ transform:translateY(-2px); box-shadow:var(--shadow-md); }
+.stat-icon{ width:36px; height:36px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:16px; margin-bottom:10px; }
+.stat-value{ font-family:'Fredoka', sans-serif; font-size:23px; font-weight:700; color:var(--choc); line-height:1; }
+.stat-label{ font-size:11.5px; color:var(--brown); margin-top:5px; font-weight:500; }
+.stat-hint{ font-size:10.5px; color:var(--brown-light); margin-top:6px; }
+
+.mini-item{ display:flex; align-items:center; gap:12px; padding:12px 10px; border-radius:13px; transition:background var(--transition); }
+.mini-item:hover{ background:var(--peach-deep); }
+.mini-item + .mini-item{ margin-top:2px; }
+.mini-thumb{ width:44px; height:44px; border-radius:13px; display:flex; align-items:center; justify-content:center; font-size:19px; flex-shrink:0; overflow:hidden; }
+.mini-thumb img{ width:100%; height:100%; object-fit:cover; }
+.mini-item .mi-title{ font-size:13.5px; font-weight:600; color:var(--choc); }
+.mini-item .mi-sub{ font-size:11.5px; color:var(--brown); margin-top:2px; }
+.mini-item .mi-right{ margin-left:auto; text-align:right; }
+
+.quick-access{ padding:20px; border:none; text-align:left; display:flex; flex-direction:column; gap:2px; transition:transform var(--transition), box-shadow var(--transition); }
+.quick-access:hover{ transform:translateY(-3px); box-shadow:var(--shadow-md); }
+
+/* ---------- Tables ---------- */
+.table-card{ overflow:hidden; }
+.table-wrap{ overflow-x:auto; }
+table{ width:100%; border-collapse:collapse; min-width:640px; }
+thead th{
+  text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--brown);
+  font-weight:600; padding:15px 18px; background:var(--peach-deep); border-bottom:1px solid rgba(74,52,40,0.08);
+}
+tbody td{ padding:15px 18px; font-size:13.5px; border-bottom:1px solid rgba(74,52,40,0.06); color:var(--choc-soft); }
+tbody tr{ transition:background var(--transition); }
+tbody tr:hover{ background:var(--peach-deep); }
+tbody tr:last-child td{ border-bottom:none; }
+.cell-strong{ color:var(--choc); font-weight:600; }
+.table-actions{ display:flex; gap:6px; flex-wrap:wrap; }
+
+/* ---------- Admin taller/producto cards con acciones de edición ---------- */
+.admin-card-actions{ display:flex; gap:6px; margin-top:10px; }
+.admin-card-actions .btn{ flex:1; justify-content:center; }
+.img-upload-box{
+  border:2px dashed rgba(74,52,40,0.2); border-radius:14px; padding:18px;
+  text-align:center; cursor:pointer; transition:border-color var(--transition), background var(--transition);
+  background:var(--peach); font-size:12.5px; color:var(--brown);
+}
+.img-upload-box:hover{ border-color:var(--pink-deep); background:var(--peach-deep); }
+.img-preview{ width:100%; height:110px; border-radius:12px; object-fit:cover; margin-bottom:10px; display:none; }
+.img-preview.show{ display:block; }
+
+/* ---------- Calendar / config grids reuse from client styles ---------- */
+.dash-grid{ display:grid; grid-template-columns:1.3fr 1fr; gap:20px; margin-bottom:24px; }
+.config-grid{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+
+.filter-chips{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; }
+
+.sidebar-overlay{ display:none; position:fixed; inset:0; background:rgba(74,52,40,0.4); z-index:90; }
+.sidebar-overlay.active{ display:block; }
+
+@media (max-width:980px){
+  .sidebar{ transform:translateX(-100%); box-shadow:var(--shadow-lg); }
+  .sidebar.open{ transform:translateX(0); }
+  .main-content{ margin-left:0; }
+  .hamburger{ display:flex; }
+  .topbar{ padding:16px 18px; }
+  .view{ padding:20px 18px 50px; }
+  .dash-grid, .config-grid{ grid-template-columns:1fr; }
+}
+@media (max-width:560px){
+  .topbar-title h2{ font-size:18px; }
+  .stat-value{ font-size:21px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     MODO CLIENTE — vidriera pública, sin login
+     ============================================================ -->
+<div class="client-shell" id="clientShell">
+
+  <header class="client-topbar">
+    <div class="client-brand">
+      <div class="brand-mark">🎂</div>
+      <div class="brand-text">
+        <h1>Dulces Caprichos</h1>
+        <span>PASTELERÍA · CAFETERÍA · TALLERES · FESTEJOS</span>
+      </div>
+    </div>
+    <nav class="client-nav" id="clientNav">
+      <button class="client-nav-item active" data-cview="catalogo">Catálogo</button>
+      <button class="client-nav-item" data-cview="eventos">Talleres y Festejos</button>
+      <button class="client-nav-item" data-cview="calendario">Calendario</button>
+    </nav>
+    <div class="client-topbar-actions">
+      <button class="staff-icon-btn" id="staffAccessBtn" title="Acceso administrador" aria-label="Acceso administrador">🔒</button>
+      <button class="client-hamburger" id="clientHamburger" aria-label="Abrir menú">☰</button>
+    </div>
+  </header>
+
+  <div class="client-mobile-nav" id="clientMobileNav">
+    <button class="client-nav-item active" data-cview="catalogo">🍰 Catálogo</button>
+    <button class="client-nav-item" data-cview="eventos">🎉 Talleres y Festejos</button>
+    <button class="client-nav-item" data-cview="calendario">📅 Calendario</button>
+  </div>
+
+  <main class="client-main">
+
+    <!-- ---------- CATÁLOGO (cliente, solo referencia) ---------- -->
+    <section class="cview active" id="cview-catalogo">
+      <div class="client-hero">
+        <h2>Nuestro catálogo</h2>
+        <p>Tortas, dulces y especialidades hechas a mano. Esta es una guía de referencia — para pedidos puntuales, escribinos por WhatsApp.</p>
+      </div>
+
+      <div class="catalogo-note">💬 Los precios son orientativos. Confirmá disponibilidad antes de tu visita.</div>
+
+      <div class="filter-chips" id="clienteCategoriaFiltros"></div>
+      <div class="grid-productos" id="clienteProductosGrid"></div>
+    </section>
+
+    <!-- ---------- EVENTOS (cliente): Talleres + Cumpleaños ---------- -->
+    <section class="cview" id="cview-eventos">
+      <div class="client-hero">
+        <h2>Talleres y festejos</h2>
+        <p>Sumate a nuestros talleres o festejá tu cumpleaños con nosotros. Cupos limitados en ambas sucursales.</p>
+      </div>
+
+      <div class="subtabs" id="eventosSubtabs">
+        <button class="subtab active" data-etab="talleres">👩‍🍳 Talleres</button>
+        <button class="subtab" data-etab="cumple">🎂 Cumpleaños</button>
+      </div>
+
+      <!-- Sub-vista: Talleres -->
+      <div class="etab-content" id="etab-talleres">
+        <div class="filter-chips" id="clienteSucursalFiltros"></div>
+        <div class="grid-talleres" id="clienteTalleresGrid"></div>
+      </div>
+
+      <!-- Sub-vista: Cumpleaños (2 modalidades) -->
+      <div class="etab-content" id="etab-cumple" style="display:none;">
+        <div class="modalidad-grid" id="modalidadesGrid"></div>
+
+        <div class="card catering-form-wrap" style="max-width:720px; padding:28px;">
+          <h3 style="font-size:17px; margin-bottom:4px;">Reservá tu festejo</h3>
+          <p style="font-size:12.5px; color:var(--brown); margin-bottom:18px;">Contanos los detalles y coordinamos todo con vos.</p>
+          <form id="formReservaCumple">
+            <div class="form-group">
+              <label>Modalidad</label>
+              <select id="rc-modalidad">
+                <option value="Merienda de cumpleaños">Merienda de cumpleaños</option>
+                <option value="Pintura de yeso">Pintura de yeso (cumpleaños)</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Nombre y apellido</label><input type="text" id="rc-nombre" placeholder="Tu nombre" required></div>
+              <div class="form-group"><label>Teléfono de contacto</label><input type="tel" id="rc-telefono" placeholder="223 000-0000" required></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Fecha del festejo</label><input type="date" id="rc-fecha" required></div>
+              <div class="form-group"><label>Sucursal</label>
+                <select id="rc-sucursal">
+                  <option>Santa Fe 3097</option>
+                  <option>25 de Mayo 2954</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group"><label>Cantidad de invitados</label><input type="number" id="rc-invitados" placeholder="Ej: 8" min="1" required></div>
+            <div class="form-group"><label>Comentarios (opcional)</label><textarea id="rc-comentarios" rows="3" placeholder="Alergias, torta a sumar, horario preferido..."></textarea></div>
+            <button type="submit" class="btn btn-primary">Continuar con la reserva</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- CALENDARIO (cliente) ---------- -->
+    <section class="cview" id="cview-calendario">
+      <div class="client-hero">
+        <h2>Calendario de talleres</h2>
+        <p>Mirá todos los próximos talleres y hacé clic en un día para ver el detalle.</p>
+      </div>
+
+      <div class="section-heading">
+        <p class="sub" id="calMonthLabelCliente" style="font-size:14px; font-weight:600; color:var(--choc);">Julio 2026</p>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-secondary btn-sm" id="calPrevCliente">← Anterior</button>
+          <button class="btn btn-secondary btn-sm" id="calNextCliente">Siguiente →</button>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:14px; margin-bottom:18px; flex-wrap:wrap;" id="calLegendCliente"></div>
+
+      <div class="card" style="padding:18px; overflow-x:auto;">
+        <div class="calendar-grid" id="calendarGridCliente"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="client-footer scallop-edge">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <h3>🎂 Dulces Caprichos MDP</h3>
+        <p>Pastelería, cafetería, talleres creativos y festejos a medida en Mar del Plata. Hacemos las cosas con cariño, una a la vez.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Nuestras sucursales</h4>
+        <div class="sucursal-item">
+          <span class="sucursal-pin">📍</span>
+          <div>
+            <div class="s-name">Sucursal Santa Fe</div>
+            <div class="s-addr">Santa Fe 3097, esq. Avellaneda</div>
+          </div>
+        </div>
+        <div class="sucursal-item">
+          <span class="sucursal-pin">📍</span>
+          <div>
+            <div class="s-name">Sucursal 25 de Mayo</div>
+            <div class="s-addr">25 de Mayo 2954</div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Seguinos</h4>
+        <p style="font-size:12.5px; color:var(--brown);">📷 @dulcescaprichos_mdp</p>
+        <p style="font-size:12.5px; color:var(--brown); margin-top:6px;">💬 Escribinos por WhatsApp para consultas puntuales</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Dulces Caprichos MDP · Mar del Plata, Buenos Aires</p>
+      <button class="staff-access-link" id="staffAccessBtnFooter">🔒 Acceso administrador</button>
+    </div>
+  </footer>
+
+</div>
+
+<!-- ============================================================
+     LOGIN — puerta discreta al panel administrativo
+     ============================================================ -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <button class="modal-close login-close" id="loginCloseBtn" aria-label="Cerrar">✕</button>
+    <div class="brand-mark login-brand-mark">🎂</div>
+    <h3>Acceso administrador</h3>
+    <p class="login-sub">Ingresá tus credenciales para gestionar el negocio</p>
+    <form id="formLogin">
+      <div class="form-group"><label>Usuario</label><input type="text" id="login-usuario" placeholder="admin" autocomplete="username"></div>
+      <div class="form-group"><label>Contraseña</label><input type="password" id="login-clave" placeholder="••••••••" autocomplete="current-password"></div>
+      <p class="login-error" id="loginError">Usuario o contraseña incorrectos.</p>
+      <button type="submit" class="btn btn-primary login-submit">Ingresar</button>
+    </form>
+    <p class="login-hint">Prototipo de demostración · usuario: <strong>admin</strong> · clave: <strong>admin</strong></p>
+  </div>
+</div>
+
+<!-- Modal overlay compartido (detalle taller, reserva, etc.) -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<!-- Toast stack -->
+<div class="toast-stack" id="toastStack"></div>
+
+<!-- ============================================================
+     MODO ADMIN — panel de gestión
+     ============================================================ -->
+<div class="app-shell" id="adminShell">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-mark">🎂</div>
+      <div class="brand-text">
+        <h1>Dulces Caprichos</h1>
+        <span>Panel de gestión</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav" id="sidebarNav">
+      <button class="nav-item active" data-view="dashboard"><span class="nav-icon">🏠</span> Dashboard</button>
+      <button class="nav-item" data-view="cumpleanos"><span class="nav-icon">🎂</span> Cumpleaños</button>
+      <button class="nav-item" data-view="talleres"><span class="nav-icon">👩‍🍳</span> Talleres</button>
+      <button class="nav-item" data-view="productos"><span class="nav-icon">🍰</span> Catálogo</button>
+      <button class="nav-item" data-view="clientes"><span class="nav-icon">👥</span> Clientes</button>
+      <button class="nav-item" data-view="calendario"><span class="nav-icon">📅</span> Calendario</button>
+      <button class="nav-item" data-view="config"><span class="nav-icon">⚙️</span> Configuración</button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar">BC</div>
+        <div>
+          <div class="u-name">Bel Colavolpe</div>
+          <div class="u-role">Administradora</div>
+        </div>
+      </div>
+      <button class="exit-admin-btn" id="exitAdminBtn">← Volver al sitio público</button>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="main-content">
+
+    <header class="topbar">
+      <div style="display:flex; align-items:center; gap:14px;">
+        <button class="hamburger" id="hamburgerBtn" aria-label="Abrir menú">☰</button>
+        <div class="topbar-title">
+          <h2 id="topbarTitle">Dashboard</h2>
+          <p id="topbarSubtitle">Resumen general del negocio</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn" id="notifBtn" aria-label="Notificaciones">🔔<span class="dot"></span></button>
+      </div>
+    </header>
+
+    <main id="viewsContainer">
+
+      <!-- ============ DASHBOARD ============ -->
+      <section class="view active" id="view-dashboard">
+
+        <div class="stats-grid">
+          <div class="card stat-card">
+            <div class="stat-icon" style="background:var(--pink-pale); color:var(--pink-deep);">📩</div>
+            <div class="stat-value" id="statConsultasEvitadas">—</div>
+            <div class="stat-label">Reservas hechas sin WhatsApp</div>
+            <div class="stat-hint">Inscripciones que ya no requirieron ida y vuelta de mensajes</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-icon" style="background:var(--sage-bg); color:var(--sage);">🎓</div>
+            <div class="stat-value" id="statAlumnos">—</div>
+            <div class="stat-label">Alumnos inscriptos</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-icon" style="background:var(--gold-bg); color:var(--gold);">🎂</div>
+            <div class="stat-value" id="statCumples">—</div>
+            <div class="stat-label">Festejos reservados este mes</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-icon" style="background:var(--info-bg); color:var(--info);">⏳</div>
+            <div class="stat-value" id="statSeñasPendientes">—</div>
+            <div class="stat-label">Señas pendientes de confirmar</div>
+          </div>
+        </div>
+
+        <div class="dash-grid">
+          <div class="card" style="padding:22px;">
+            <div class="section-heading" style="margin-bottom:16px;">
+              <h3>👩‍🍳 Próximos talleres</h3>
+              <button class="btn-ghost btn" data-view-link="talleres">Ver todos →</button>
+            </div>
+            <div id="dashTalleresList"></div>
+          </div>
+
+          <div class="card" style="padding:22px;">
+            <div class="section-heading" style="margin-bottom:16px;">
+              <h3>🎂 Próximos festejos</h3>
+              <button class="btn-ghost btn" data-view-link="cumpleanos">Ver todos →</button>
+            </div>
+            <div id="dashEventosList"></div>
+          </div>
+        </div>
+
+        <div class="section-heading">
+          <div>
+            <h3>Accesos rápidos</h3>
+            <p class="sub">Creá lo que necesites en un clic</p>
+          </div>
+        </div>
+        <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));">
+          <button class="card quick-access" data-action="new-taller">
+            <div class="stat-icon" style="background:var(--pink-pale);">🎓</div>
+            <div class="stat-label" style="font-size:14px; color:var(--choc); font-weight:600;">Nuevo taller</div>
+          </button>
+          <button class="card quick-access" data-action="new-producto">
+            <div class="stat-icon" style="background:var(--sage-bg);">🧁</div>
+            <div class="stat-label" style="font-size:14px; color:var(--choc); font-weight:600;">Nuevo producto</div>
+          </button>
+          <button class="card quick-access" data-action="new-cliente">
+            <div class="stat-icon" style="background:var(--info-bg);">👤</div>
+            <div class="stat-label" style="font-size:14px; color:var(--choc); font-weight:600;">Nuevo cliente</div>
+          </button>
+        </div>
+
+      </section>
+
+      <!-- ============ CUMPLEAÑOS (admin) ============ -->
+      <section class="view" id="view-cumpleanos">
+        <div class="section-heading">
+          <div>
+            <h3>Festejos de cumpleaños</h3>
+            <p class="sub">Reservas de merienda temática y pintura de yeso</p>
+          </div>
+        </div>
+
+        <div class="card table-card">
+          <div class="table-wrap">
+            <table id="tablaCumpleBody">
+              <thead>
+                <tr>
+                  <th>Cliente</th><th>Modalidad</th><th>Fecha</th><th>Sucursal</th><th>Invitados</th><th>Seña</th><th>Estado</th><th></th>
+                </tr>
+              </thead>
+              <tbody id="tablaCumpleTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ TALLERES (admin, editable) ============ -->
+      <section class="view" id="view-talleres">
+        <div class="section-heading">
+          <div>
+            <h3>Talleres</h3>
+            <p class="sub">Administrá cursos, cupos, profesores e inscripciones</p>
+          </div>
+          <button class="btn btn-primary" data-action="new-taller">➕ Crear nuevo taller</button>
+        </div>
+
+        <div class="grid-talleres" id="talleresGrid"></div>
+
+        <div class="section-heading" style="margin-top:34px;">
+          <div>
+            <h3>👥 Alumnos inscriptos</h3>
+            <p class="sub">Listado general de alumnos en talleres activos</p>
+          </div>
+        </div>
+        <div class="card table-card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Alumno</th><th>Taller</th><th>Contacto</th><th>Seña</th></tr></thead>
+              <tbody id="tablaAlumnosBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CATÁLOGO (admin, editable) ============ -->
+      <section class="view" id="view-productos">
+        <div class="section-heading">
+          <div>
+            <h3>Catálogo de productos</h3>
+            <p class="sub">Referencia visual para el cliente — no es venta directa</p>
+          </div>
+          <button class="btn btn-primary" data-action="new-producto">➕ Agregar producto</button>
+        </div>
+
+        <div class="filter-chips" id="categoriaFiltros"></div>
+        <div class="grid-productos" id="productosGrid"></div>
+      </section>
+
+      <!-- ============ CLIENTES ============ -->
+      <section class="view" id="view-clientes">
+        <div class="section-heading">
+          <div>
+            <h3>Clientes</h3>
+            <p class="sub">Historial y datos de contacto</p>
+          </div>
+          <button class="btn btn-primary" data-action="new-cliente">➕ Nuevo cliente</button>
+        </div>
+
+        <div class="card table-card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Último contacto</th><th>Observaciones</th></tr></thead>
+              <tbody id="tablaClientesBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CALENDARIO (admin) ============ -->
+      <section class="view" id="view-calendario">
+        <div class="section-heading">
+          <div>
+            <h3>Calendario</h3>
+            <p class="sub" id="calMonthLabel">Julio 2026</p>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button class="btn btn-secondary btn-sm" id="calPrev">← Anterior</button>
+            <button class="btn btn-secondary btn-sm" id="calNext">Siguiente →</button>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:14px; margin-bottom:18px; flex-wrap:wrap;" id="calLegend"></div>
+
+        <div class="card" style="padding:18px; overflow-x:auto;">
+          <div class="calendar-grid" id="calendarGrid"></div>
+        </div>
+      </section>
+
+      <!-- ============ CONFIGURACIÓN ============ -->
+      <section class="view" id="view-config">
+        <div class="section-heading">
+          <div>
+            <h3>Configuración del negocio</h3>
+            <p class="sub">Datos generales y sucursales de Dulces Caprichos</p>
+          </div>
+        </div>
+
+        <div class="config-grid">
+          <div class="card" style="padding:24px;">
+            <h4 style="font-size:15px; margin-bottom:16px;">🏪 Datos generales</h4>
+            <div class="form-group"><label>Nombre del negocio</label><input type="text" value="Dulces Caprichos MDP"></div>
+            <div class="form-group"><label>Instagram</label><input type="text" value="@dulcescaprichos_mdp"></div>
+            <div class="form-group"><label>WhatsApp de la dueña</label><input type="tel" id="cfg-whatsapp-dueña" value="5492235551234"></div>
+            <p class="form-hint" style="margin-bottom:16px;">A este número se le arma el mensaje automático de aviso de reservas.</p>
+            <button class="btn btn-primary" data-action="save-config">Guardar cambios</button>
+          </div>
+
+          <div class="card" style="padding:24px;">
+            <h4 style="font-size:15px; margin-bottom:16px;">📍 Sucursales</h4>
+            <div class="form-group"><label>Sucursal 1 — Nombre</label><input type="text" value="Sucursal Santa Fe"></div>
+            <div class="form-group"><label>Sucursal 1 — Dirección</label><input type="text" value="Santa Fe 3097, esq. Avellaneda"></div>
+            <div class="form-group"><label>Sucursal 2 — Nombre</label><input type="text" value="Sucursal 25 de Mayo"></div>
+            <div class="form-group"><label>Sucursal 2 — Dirección</label><input type="text" value="25 de Mayo 2954"></div>
+
+            <h4 style="font-size:15px; margin:22px 0 16px;">💳 Seña de reservas</h4>
+            <div class="form-row">
+              <div class="form-group"><label>Seña talleres</label><input type="text" value="$5.000"></div>
+              <div class="form-group"><label>Seña cumpleaños</label><input type="text" value="$10.000"></div>
+            </div>
+            <p class="form-hint">El cobro real vía Mercado Pago se integrará en una próxima etapa.</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   DULCES CAPRICHOS MDP — Prototipo funcional (frontend puro)
+   Todo el estado vive en memoria (arrays JS). El cobro real vía
+   Mercado Pago y el envío automático de WhatsApp requieren un
+   backend (Netlify Functions) que se sumará en una próxima etapa.
+   ================================================================ */
+
+/* ---------------- CONFIGURACIÓN DEL NEGOCIO ---------------- */
+
+const config = {
+  whatsappDueña: "5492235551234", // formato internacional sin +
+  señaTaller: 5000,
+  señaCumple: 10000,
+  sucursales: [
+    { nombre:"Sucursal Santa Fe", direccion:"Santa Fe 3097, esq. Avellaneda" },
+    { nombre:"Sucursal 25 de Mayo", direccion:"25 de Mayo 2954" },
+  ],
+};
+
+/* ---------------- DATOS: TALLERES ---------------- */
+/* Cada taller ahora incluye: descripción, profesor, sucursal e imagen (emoji como placeholder) */
+
+const talleres = [
+  { nombre:"Macarons franceses", fecha:"2026-07-14", hora:"18:00", cupos:8, cuposOcupados:6, precio:22000,
+    sucursal:"Sucursal Santa Fe", profesor:"Caro Miranda",
+    descripcion:"Aprendé la técnica clásica de macarons: merengue italiano, macaronage y relleno de ganache.",
+    emoji:"🍬", color:"linear-gradient(135deg,#F6DEE3,#F1C9D2)", imagen:null },
+  { nombre:"Torta cumpleaños infantil", fecha:"2026-07-17", hora:"17:00", cupos:10, cuposOcupados:10, precio:26000,
+    sucursal:"Sucursal Santa Fe", profesor:"Bel Colavolpe",
+    descripcion:"Armado y decoración de una torta temática infantil con buttercream y fondant.",
+    emoji:"🎂", color:"linear-gradient(135deg,#F3E4CB,#E9CE9E)", imagen:null },
+  { nombre:"Alfajores artesanales", fecha:"2026-07-21", hora:"18:30", cupos:12, cuposOcupados:4, precio:18500,
+    sucursal:"Sucursal 25 de Mayo", profesor:"Caro Miranda",
+    descripcion:"Masa, dulce de leche casero y baño a elección. Te llevás una docena a casa.",
+    emoji:"🍪", color:"linear-gradient(135deg,#E8DCCB,#D8C3A5)", imagen:null },
+  { nombre:"Bizcochos y rellenos", fecha:"2026-07-18", hora:"11:00", cupos:10, cuposOcupados:3, precio:20000,
+    sucursal:"Sucursal Santa Fe", profesor:"Bel Colavolpe",
+    descripcion:"Técnicas base de bizcochuelo y rellenos clásicos para tortas caseras.",
+    emoji:"🧁", color:"linear-gradient(135deg,#F3E4CB,#E9CE9E)", imagen:null },
+  { nombre:"Cookies NY", fecha:"2026-07-20", hora:"14:00", cupos:10, cuposOcupados:9, precio:19000,
+    sucursal:"Sucursal 25 de Mayo", profesor:"Male Suárez",
+    descripcion:"Las clásicas cookies estilo Nueva York: bordes crocantes, centro tierno.",
+    emoji:"🍪", color:"linear-gradient(135deg,#E8DCCB,#D8C3A5)", imagen:null },
+  { nombre:"Velas de gel — temática marina", fecha:"2026-07-23", hora:"16:00", cupos:8, cuposOcupados:2, precio:21000,
+    sucursal:"Sucursal Santa Fe", profesor:"Vicky Núñez",
+    descripcion:"Velas decorativas de gel con temática marina, moldes y esencias incluidas.",
+    emoji:"🕯️", color:"linear-gradient(135deg,#E3D2C4,#C9A488)", imagen:null },
+  { nombre:"Cookies glaseadas", fecha:"2026-07-24", hora:"14:00", cupos:10, cuposOcupados:9, precio:19500,
+    sucursal:"Sucursal 25 de Mayo", profesor:"Male Suárez",
+    descripcion:"Decoración con glasé real: técnicas de relleno, contorno y detalles finos.",
+    emoji:"🍪", color:"linear-gradient(135deg,#F6DEE3,#E9CE9E)", imagen:null },
+  { nombre:"Buttercream y tortas", fecha:"2026-07-25", hora:"11:00", cupos:8, cuposOcupados:5, precio:24000,
+    sucursal:"Sucursal Santa Fe", profesor:"Bel Colavolpe",
+    descripcion:"Técnicas de espatulado, texturas y flores con manga en buttercream.",
+    emoji:"🎂", color:"linear-gradient(135deg,#F3E4CB,#E9CE9E)", imagen:null },
+  { nombre:"Encordonado libre", fecha:"2026-07-25", hora:"16:00", cupos:12, cuposOcupados:6, precio:17000,
+    sucursal:"Sucursal 25 de Mayo", profesor:"Vicky Núñez",
+    descripcion:"Técnica de encordonado macramé libre, ideal para principiantes.",
+    emoji:"🧵", color:"linear-gradient(135deg,#E3D2C4,#C9A488)", imagen:null },
+  { nombre:"Esferas efervescentes", fecha:"2026-07-30", hora:"16:00", cupos:8, cuposOcupados:2, precio:20500,
+    sucursal:"Sucursal Santa Fe", profesor:"Vicky Núñez",
+    descripcion:"Bombas de baño efervescentes con aceites esenciales y colores naturales.",
+    emoji:"🫧", color:"linear-gradient(135deg,#E8DCCB,#D8C3A5)", imagen:null },
+  { nombre:"Yeso y concreto — Nivel 1", fecha:"2026-07-31", hora:"16:00", cupos:10, cuposOcupados:4, precio:19000,
+    sucursal:"Sucursal Santa Fe", profesor:"Caro Miranda",
+    descripcion:"Introducción al moldeado y pintado de piezas decorativas de yeso.",
+    emoji:"🎨", color:"linear-gradient(135deg,#F6DEE3,#F1C9D2)", imagen:null },
+];
+
+/* ---------------- DATOS: ALUMNOS INSCRIPTOS ---------------- */
+
+const alumnos = [
+  { nombre:"Camila Torres", taller:"Macarons franceses", contacto:"223 455-1120", señaEstado:"Cobrada" },
+  { nombre:"Rodrigo Álvarez", taller:"Torta cumpleaños infantil", contacto:"223 402-8871", señaEstado:"Cobrada" },
+  { nombre:"Belén Ruiz", taller:"Cookies NY", contacto:"223 511-2298", señaEstado:"Pendiente" },
+  { nombre:"Nicolás Peralta", taller:"Alfajores artesanales", contacto:"223 388-0045", señaEstado:"Cobrada" },
+  { nombre:"Agustina López", taller:"Cookies glaseadas", contacto:"223 470-6612", señaEstado:"Pendiente" },
+];
+
+/* ---------------- DATOS: MODALIDADES DE CUMPLEAÑOS ---------------- */
+
+const modalidadesCumple = [
+  { nombre:"Merienda de cumpleaños", emoji:"🎂", color:"linear-gradient(135deg,#F6DEE3,#F1C9D2)",
+    descripcion:"Armamos un festejo íntimo con una merienda súper completa, dulce y salada, pensada según la cantidad de invitados.",
+    precioDesde:"Consultar según invitados",
+    facts:["⏱️ Duración aprox. 2 hs", "👥 Mínimo 6 personas", "☕ Infusión o jugo por persona", "🎂 Posibilidad de sumar torta"],
+    incluye:["Cookies","Budines","Scons de queso","Chipá","Medialunas","Brownie","Monoporciones"] },
+  { nombre:"Pintura de yeso", emoji:"🎨", color:"linear-gradient(135deg,#E3D2C4,#C9A488)",
+    descripcion:"Pintá 1 o 2 piezas de yeso decorativas y te las llevás a casa. Ideal para cumpleaños, revelaciones o salidas con amigos.",
+    precioDesde:"$16.000 por persona",
+    facts:["⏱️ Duración aprox. 2 hs 30", "🎨 Incluye materiales y pieza", "👨‍👩‍👧 Apto para todas las edades", "☕ Consumo a la carta durante la actividad"],
+    incluye:["1 o 2 piezas de yeso","Pinturas","Pinceles","Torta opcional"] },
+];
+
+/* ---------------- DATOS: RESERVAS DE CUMPLEAÑOS ---------------- */
+
+const reservasCumple = [
+  { cliente:"Lucía Fernández", modalidad:"Merienda de cumpleaños", fecha:"2026-07-12", sucursal:"Sucursal Santa Fe", invitados:8, señaEstado:"Cobrada", estado:"Confirmado" },
+  { cliente:"Juan Manuel Ortiz", modalidad:"Pintura de yeso", fecha:"2026-07-16", sucursal:"Sucursal 25 de Mayo", invitados:12, señaEstado:"Cobrada", estado:"Confirmado" },
+  { cliente:"Sofía Giménez", modalidad:"Merienda de cumpleaños", fecha:"2026-07-19", sucursal:"Sucursal Santa Fe", invitados:6, señaEstado:"Pendiente", estado:"Pendiente de seña" },
+];
+
+/* ---------------- DATOS: CATÁLOGO (editable por admin) ---------------- */
+
+const productos = [
+  { nombre:"Torta Selva Negra", categoria:"Tortas", precio:14500, emoji:"🍰", color:"linear-gradient(135deg,#E3D2C4,#C9A488)", imagen:null },
+  { nombre:"Caja x12 Macarons", categoria:"Bombonería", precio:9800, emoji:"🍬", color:"linear-gradient(135deg,#F6DEE3,#F1C9D2)", imagen:null },
+  { nombre:"Docena Alfajores de maicena", categoria:"Alfajores", precio:7200, emoji:"🍪", color:"linear-gradient(135deg,#E8DCCB,#D8C3A5)", imagen:null },
+  { nombre:"Cupcakes red velvet x6", categoria:"Cupcakes", precio:8400, emoji:"🧁", color:"linear-gradient(135deg,#F3E4CB,#E9CE9E)", imagen:null },
+  { nombre:"Torta Red Velvet", categoria:"Tortas", precio:15800, emoji:"❤️", color:"linear-gradient(135deg,#F6DEE3,#DD97A3)", imagen:null },
+  { nombre:"Bombones surtidos x20", categoria:"Bombonería", precio:11200, emoji:"🍫", color:"linear-gradient(135deg,#E3D2C4,#C9A488)", imagen:null },
+  { nombre:"Torta Cheesecake de frutos rojos", categoria:"Tortas", precio:16200, emoji:"🍓", color:"linear-gradient(135deg,#F6DEE3,#F1C9D2)", imagen:null },
+  { nombre:"Mini tartas de limón x6", categoria:"Tartas", precio:9600, emoji:"🍋", color:"linear-gradient(135deg,#F3E4CB,#E9CE9E)", imagen:null },
+];
+
+/* ---------------- DATOS: CLIENTES ---------------- */
+
+const clientes = [
+  { nombre:"Lucía Fernández", telefono:"223 455-9021", email:"lucia.fernandez@mail.com", ultimoContacto:"12 Jul 2026", obs:"Alérgica a frutos secos" },
+  { nombre:"Juan Manuel Ortiz", telefono:"223 388-2201", email:"jmortiz@mail.com", ultimoContacto:"16 Jul 2026", obs:"Prefiere contacto por WhatsApp" },
+  { nombre:"Sofía Giménez", telefono:"223 512-7789", email:"sofigimenez@mail.com", ultimoContacto:"19 Jul 2026", obs:"—" },
+];
+
+const tipoColor = { taller:"#D45F84", cumple:"#D9A441" };
+const tipoLabel = { taller:"Taller", cumple:"Festejo" };
+
+/* ---------------- HELPERS ---------------- */
+
+function formatoMoneda(n){ return n.toLocaleString('es-AR', { style:'currency', currency:'ARS', maximumFractionDigits:0 }); }
+
+function formatoFechaLarga(iso){
+  return new Date(iso + 'T00:00:00').toLocaleDateString('es-AR', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function badgeClaseEstado(estado){
+  const map = {
+    "Confirmado":"badge-ok", "Pendiente de seña":"badge-warn", "Cancelado":"badge-danger",
+    "Cupos disponibles":"badge-ok", "Últimos cupos":"badge-warn", "Cupo completo":"badge-danger",
+    "Cobrada":"badge-ok", "Pendiente":"badge-warn",
+  };
+  return map[estado] || "badge-info";
+}
+
+function estadoCuposTaller(t){
+  if(t.cuposOcupados >= t.cupos) return "Cupo completo";
+  if(t.cupos - t.cuposOcupados <= 2) return "Últimos cupos";
+  return "Cupos disponibles";
+}
+
+function mostrarToast(mensaje, icono="✓"){
+  const stack = document.getElementById('toastStack');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `<span class="toast-icon">${icono}</span><span>${mensaje}</span>`;
+  stack.appendChild(toast);
+  setTimeout(() => { toast.classList.add('hide'); setTimeout(() => toast.remove(), 260); }, 3200);
+}
+
+/* Genera el link de WhatsApp con mensaje prearmado hacia la dueña */
+function linkWhatsAppDueña(mensaje){
+  return `https://wa.me/${config.whatsappDueña}?text=${encodeURIComponent(mensaje)}`;
+}
+
+/* ================================================================
+   RENDER: DASHBOARD ADMIN
+   ================================================================ */
+
+function renderDashboard(){
+  document.getElementById('statConsultasEvitadas').textContent = alumnos.length + reservasCumple.length;
+  document.getElementById('statAlumnos').textContent = alumnos.length;
+  document.getElementById('statCumples').textContent = reservasCumple.filter(r => r.estado !== "Cancelado").length;
+  document.getElementById('statSeñasPendientes').textContent =
+    alumnos.filter(a => a.señaEstado === "Pendiente").length + reservasCumple.filter(r => r.señaEstado === "Pendiente").length;
+
+  const talleresList = document.getElementById('dashTalleresList');
+  const proximos = [...talleres].sort((a,b) => a.fecha.localeCompare(b.fecha)).slice(0,4);
+  talleresList.innerHTML = proximos.map(t => `
+    <div class="mini-item">
+      <div class="mini-thumb" style="background:${t.color};">${t.imagen ? `<img src="${t.imagen}" alt="">` : t.emoji}</div>
+      <div>
+        <div class="mi-title">${t.nombre}</div>
+        <div class="mi-sub">${formatoFechaLarga(t.fecha)} · Prof. ${t.profesor}</div>
+      </div>
+      <div class="mi-right"><span class="badge ${badgeClaseEstado(estadoCuposTaller(t))}">${estadoCuposTaller(t)}</span></div>
+    </div>
+  `).join('');
+
+  const eventosList = document.getElementById('dashEventosList');
+  const proximosEventos = reservasCumple.filter(r => r.estado !== "Cancelado").slice(0,4);
+  eventosList.innerHTML = proximosEventos.map(r => `
+    <div class="mini-item">
+      <div class="mini-thumb" style="background:linear-gradient(135deg,#F6DEE3,#E9CE9E);">🎉</div>
+      <div>
+        <div class="mi-title">${r.modalidad}</div>
+        <div class="mi-sub">${r.cliente} · ${formatoFechaLarga(r.fecha)}</div>
+      </div>
+      <div class="mi-right"><span class="badge ${badgeClaseEstado(r.estado)}">${r.estado}</span></div>
+    </div>
+  `).join('');
+}
+
+/* ================================================================
+   RENDER: TALLERES (admin, editable)
+   ================================================================ */
+
+function renderTalleres(){
+  const grid = document.getElementById('talleresGrid');
+  grid.innerHTML = talleres.map((t, i) => {
+    const estado = estadoCuposTaller(t);
+    const pct = Math.round((t.cuposOcupados / t.cupos) * 100);
+    return `
+    <div class="card taller-card" style="cursor:default;">
+      <div class="taller-img" style="background:${t.color};">
+        ${t.imagen ? `<img src="${t.imagen}" alt="">` : t.emoji}
+        <span class="badge ${badgeClaseEstado(estado)}">${estado}</span>
+        <span class="sucursal-tag">${t.sucursal.replace('Sucursal ','')}</span>
+      </div>
+      <div class="taller-body">
+        <h4>${t.nombre}</h4>
+        <div class="taller-profe">👩‍🍳 Prof. ${t.profesor}</div>
+        <div class="taller-meta">
+          <span>📅 ${formatoFechaLarga(t.fecha)} · ${t.hora} hs</span>
+          <span>👥 ${t.cuposOcupados}/${t.cupos} cupos ocupados</span>
+        </div>
+        <div class="cupos-bar"><div class="cupos-fill" style="width:${pct}%;"></div></div>
+        <div class="taller-footer">
+          <span class="taller-price">${formatoMoneda(t.precio)}</span>
+        </div>
+        <div class="admin-card-actions">
+          <button class="btn btn-secondary btn-sm" data-action="editar-taller" data-index="${i}">✏️ Editar</button>
+          <button class="btn btn-secondary btn-sm" data-action="ver-inscriptos-taller" data-index="${i}">👥 Inscriptos</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const tbody = document.getElementById('tablaAlumnosBody');
+  tbody.innerHTML = alumnos.map((a, i) => `
+    <tr>
+      <td class="cell-strong">${a.nombre}</td>
+      <td>${a.taller}</td>
+      <td>${a.contacto}</td>
+      <td>
+        <span class="badge ${badgeClaseEstado(a.señaEstado)}" style="cursor:pointer;" data-action="toggle-seña-alumno" data-index="${i}">${a.señaEstado}</span>
+      </td>
+    </tr>
+  `).join('');
+}
+
+/* ================================================================
+   RENDER: CUMPLEAÑOS (admin)
+   ================================================================ */
+
+function renderCumpleanosAdmin(){
+  const tbody = document.getElementById('tablaCumpleTbody');
+  tbody.innerHTML = reservasCumple.map((r, i) => `
+    <tr>
+      <td class="cell-strong">${r.cliente}</td>
+      <td>${r.modalidad}</td>
+      <td>${formatoFechaLarga(r.fecha)}</td>
+      <td>${r.sucursal.replace('Sucursal ','')}</td>
+      <td>${r.invitados}</td>
+      <td><span class="badge ${badgeClaseEstado(r.señaEstado)}" style="cursor:pointer;" data-action="toggle-seña-cumple" data-index="${i}">${r.señaEstado}</span></td>
+      <td><span class="badge ${badgeClaseEstado(r.estado)}">${r.estado}</span></td>
+      <td>
+        <button class="btn btn-secondary btn-sm" data-action="ver-reserva-cumple" data-index="${i}">Ver</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+/* ================================================================
+   RENDER: CATÁLOGO (admin, editable)
+   ================================================================ */
+
+let categoriaActivaAdmin = "Todos";
+
+function renderFiltrosProductosAdmin(){
+  const categorias = ["Todos", ...new Set(productos.map(p => p.categoria))];
+  const cont = document.getElementById('categoriaFiltros');
+  cont.innerHTML = categorias.map(c => `<button class="chip ${c === categoriaActivaAdmin ? 'active' : ''}" data-cat="${c}">${c}</button>`).join('');
+  cont.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      categoriaActivaAdmin = chip.dataset.cat;
+      renderFiltrosProductosAdmin();
+      renderProductosAdmin();
+    });
+  });
+}
+
+function renderProductosAdmin(){
+  const grid = document.getElementById('productosGrid');
+  const lista = categoriaActivaAdmin === "Todos" ? productos : productos.filter(p => p.categoria === categoriaActivaAdmin);
+  grid.innerHTML = lista.map((p) => {
+    const realIndex = productos.indexOf(p);
+    return `
+    <div class="card producto-card">
+      <div class="producto-img" style="background:${p.color};">${p.imagen ? `<img src="${p.imagen}" alt="">` : p.emoji}</div>
+      <div class="producto-body">
+        <div class="producto-cat">${p.categoria}</div>
+        <h4>${p.nombre}</h4>
+        <div class="producto-footer"><span class="producto-price">${formatoMoneda(p.precio)}</span></div>
+        <div class="admin-card-actions">
+          <button class="btn btn-secondary btn-sm" data-action="editar-producto" data-index="${realIndex}">✏️ Editar</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ================================================================
+   RENDER: CLIENTES
+   ================================================================ */
+
+function renderClientes(){
+  const body = document.getElementById('tablaClientesBody');
+  body.innerHTML = clientes.map(c => `
+    <tr>
+      <td class="cell-strong">${c.nombre}</td>
+      <td>${c.telefono}</td>
+      <td>${c.email}</td>
+      <td>${c.ultimoContacto}</td>
+      <td>${c.obs}</td>
+    </tr>
+  `).join('');
+}
+
+/* ================================================================
+   CALENDARIO — motor compartido cliente / admin
+   ================================================================ */
+
+let calMes = 6; // Julio (0-indexado)
+let calAnio = 2026;
+let calMesCliente = 6;
+let calAnioCliente = 2026;
+const nombresMeses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const diasSemana = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+
+function eventosDelMes(mes, anio){
+  // Combina talleres + reservas de cumpleaños en un mapa día -> eventos
+  const mapa = {};
+  talleres.forEach(t => {
+    const d = new Date(t.fecha + 'T00:00:00');
+    if(d.getMonth() === mes && d.getFullYear() === anio){
+      const dia = d.getDate();
+      if(!mapa[dia]) mapa[dia] = [];
+      mapa[dia].push({ tipo:"taller", texto:t.nombre, ref:t });
+    }
+  });
+  reservasCumple.forEach(r => {
+    if(r.estado === "Cancelado") return;
+    const d = new Date(r.fecha + 'T00:00:00');
+    if(d.getMonth() === mes && d.getFullYear() === anio){
+      const dia = d.getDate();
+      if(!mapa[dia]) mapa[dia] = [];
+      mapa[dia].push({ tipo:"cumple", texto:r.modalidad, ref:r });
+    }
+  });
+  return mapa;
+}
+
+function renderLeyendaCalendario(elId){
+  document.getElementById(elId).innerHTML = Object.keys(tipoLabel).map(t => `
+    <div class="legend-item"><span class="legend-dot" style="background:${tipoColor[t]};"></span> ${tipoLabel[t]}s</div>
+  `).join('');
+}
+
+function construirCalendarioHTML(mes, anio, gridId, { clickable=false } = {}){
+  const grid = document.getElementById(gridId);
+  const primerDia = new Date(anio, mes, 1).getDay();
+  const diasEnMes = new Date(anio, mes + 1, 0).getDate();
+  const hoy = new Date();
+  const esMesActual = hoy.getFullYear() === anio && hoy.getMonth() === mes;
+  const eventos = eventosDelMes(mes, anio);
+
+  let html = diasSemana.map(d => `<div class="cal-dow">${d}</div>`).join('');
+  for(let i=0; i<primerDia; i++){ html += `<div class="cal-day empty"></div>`; }
+
+  for(let d=1; d<=diasEnMes; d++){
+    const eventosDia = eventos[d] || [];
+    const esHoy = esMesActual && hoy.getDate() === d;
+    const eventosHtml = eventosDia.slice(0,2).map(e =>
+      `<div class="cal-event" style="background:${tipoColor[e.tipo]};" title="${e.texto}">${e.texto}</div>`
+    ).join('');
+    const masHtml = eventosDia.length > 2 ? `<div class="cal-more">+${eventosDia.length - 2} más</div>` : '';
+    const clickAttr = (clickable && eventosDia.length > 0) ? `data-caldia="${d}" data-calmes="${mes}" data-calanio="${anio}"` : '';
+    const clickClass = (clickable && eventosDia.length > 0) ? 'has-events' : '';
+    html += `
+      <div class="cal-day ${esHoy ? 'today' : ''} ${clickClass}" ${clickAttr}>
+        <div class="cal-daynum">${d}</div>
+        ${eventosHtml}
+        ${masHtml}
+      </div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function renderCalendario(){
+  document.getElementById('calMonthLabel').textContent = `${nombresMeses[calMes]} ${calAnio}`;
+  construirCalendarioHTML(calMes, calAnio, 'calendarGrid');
+}
+
+function renderCalendarioCliente(){
+  document.getElementById('calMonthLabelCliente').textContent = `${nombresMeses[calMesCliente]} ${calAnioCliente}`;
+  construirCalendarioHTML(calMesCliente, calAnioCliente, 'calendarGridCliente', { clickable:true });
+
+  // click en día -> modal con lista de talleres de ese día
+  document.querySelectorAll('#calendarGridCliente .cal-day.has-events').forEach(dayEl => {
+    dayEl.addEventListener('click', () => {
+      const dia = Number(dayEl.dataset.caldia);
+      const mes = Number(dayEl.dataset.calmes);
+      const anio = Number(dayEl.dataset.calanio);
+      modalEventosDelDia(dia, mes, anio);
+    });
+  });
+}
+
+function modalEventosDelDia(dia, mes, anio){
+  const eventos = eventosDelMes(mes, anio)[dia] || [];
+  const fechaTexto = `${dia} de ${nombresMeses[mes]}`;
+  const itemsHtml = eventos.map(e => {
+    if(e.tipo === "taller"){
+      const t = e.ref;
+      const idx = talleres.indexOf(t);
+      return `
+        <div class="mini-item" style="cursor:pointer;" data-action="ver-detalle-taller-desde-cal" data-index="${idx}">
+          <div class="mini-thumb" style="background:${t.color};">${t.imagen ? `<img src="${t.imagen}" alt="">` : t.emoji}</div>
+          <div><div class="mi-title">${t.nombre}</div><div class="mi-sub">${t.hora} hs · Prof. ${t.profesor}</div></div>
+          <div class="mi-right"><span class="badge ${badgeClaseEstado(estadoCuposTaller(t))}">${estadoCuposTaller(t)}</span></div>
+        </div>`;
+    } else {
+      return `
+        <div class="mini-item">
+          <div class="mini-thumb" style="background:linear-gradient(135deg,#F6DEE3,#E9CE9E);">🎉</div>
+          <div><div class="mi-title">${e.texto}</div><div class="mi-sub">Festejo reservado</div></div>
+        </div>`;
+    }
+  }).join('');
+
+  abrirModal(`
+    <div class="modal-header"><h3>📅 ${fechaTexto}</h3><button class="modal-close">✕</button></div>
+    <div class="modal-body">${itemsHtml || '<p>No hay eventos este día.</p>'}</div>
+    <div class="modal-footer"><button class="btn btn-secondary" data-action="cerrar-modal">Cerrar</button></div>
+  `);
+}
+
+document.getElementById('calPrev').addEventListener('click', () => { calMes--; if(calMes<0){calMes=11;calAnio--;} renderCalendario(); });
+document.getElementById('calNext').addEventListener('click', () => { calMes++; if(calMes>11){calMes=0;calAnio++;} renderCalendario(); });
+document.getElementById('calPrevCliente').addEventListener('click', () => { calMesCliente--; if(calMesCliente<0){calMesCliente=11;calAnioCliente--;} renderCalendarioCliente(); });
+document.getElementById('calNextCliente').addEventListener('click', () => { calMesCliente++; if(calMesCliente>11){calMesCliente=0;calAnioCliente++;} renderCalendarioCliente(); });
+
+/* ================================================================
+   NAVEGACIÓN ADMIN
+   ================================================================ */
+
+const viewTitles = {
+  dashboard: ["Dashboard", "Resumen general del negocio"],
+  cumpleanos: ["Cumpleaños", "Reservas de festejos"],
+  talleres: ["Talleres", "Cursos, cupos, profesores e inscripciones"],
+  productos: ["Catálogo", "Referencia visual de productos"],
+  clientes: ["Clientes", "Base de datos de clientes"],
+  calendario: ["Calendario", "Talleres y festejos programados"],
+  config: ["Configuración", "Datos del negocio y sucursales"],
+};
+
+function irAVista(viewName){
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(`view-${viewName}`).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navBtn = document.querySelector(`.nav-item[data-view="${viewName}"]`);
+  if(navBtn) navBtn.classList.add('active');
+  const [title, sub] = viewTitles[viewName];
+  document.getElementById('topbarTitle').textContent = title;
+  document.getElementById('topbarSubtitle').textContent = sub;
+  closeSidebarMobile();
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+document.querySelectorAll('.nav-item[data-view]').forEach(btn => btn.addEventListener('click', () => irAVista(btn.dataset.view)));
+document.querySelectorAll('[data-view-link]').forEach(btn => btn.addEventListener('click', () => irAVista(btn.dataset.viewLink)));
+
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('sidebarOverlay');
+function openSidebarMobile(){ sidebar.classList.add('open'); overlay.classList.add('active'); }
+function closeSidebarMobile(){ sidebar.classList.remove('open'); overlay.classList.remove('active'); }
+document.getElementById('hamburgerBtn').addEventListener('click', openSidebarMobile);
+overlay.addEventListener('click', closeSidebarMobile);
+
+/* ================================================================
+   MODAL GENÉRICO
+   ================================================================ */
+
+const modalOverlay = document.getElementById('modalOverlay');
+const modalContent = document.getElementById('modalContent');
+
+function abrirModal(html){
+  modalContent.innerHTML = html;
+  modalOverlay.classList.add('active');
+  const closeBtn = modalContent.querySelector('.modal-close');
+  if(closeBtn) closeBtn.addEventListener('click', cerrarModal);
+  const cancelBtn = modalContent.querySelector('[data-action="cerrar-modal"]');
+  if(cancelBtn) cancelBtn.addEventListener('click', cerrarModal);
+}
+function cerrarModal(){ modalOverlay.classList.remove('active'); }
+modalOverlay.addEventListener('click', (e) => { if(e.target === modalOverlay) cerrarModal(); });
+document.addEventListener('keydown', (e) => { if(e.key === 'Escape'){ cerrarModal(); cerrarLogin(); } });
+
+/* ---------------- Modales: gestión ADMIN de talleres ---------------- */
+
+function inputImagenHTML(idPrefix, imagenActual){
+  return `
+    <div class="form-group">
+      <label>Foto ilustrativa</label>
+      <img class="img-preview ${imagenActual ? 'show' : ''}" id="${idPrefix}-preview" src="${imagenActual || ''}" alt="">
+      <label class="img-upload-box" for="${idPrefix}-file">📷 Tocá para elegir una foto (opcional)</label>
+      <input type="file" accept="image/*" id="${idPrefix}-file" style="display:none;">
+    </div>
+  `;
+}
+
+function conectarInputImagen(idPrefix){
+  const fileInput = document.getElementById(`${idPrefix}-file`);
+  const preview = document.getElementById(`${idPrefix}-preview`);
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      preview.src = e.target.result;
+      preview.classList.add('show');
+      preview.dataset.value = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function opcionesSucursalHTML(seleccionada){
+  return config.sucursales.map(s => `<option ${s.nombre === seleccionada ? 'selected' : ''}>${s.nombre}</option>`).join('');
+}
+
+function modalNuevoTaller(){
+  abrirModal(`
+    <div class="modal-header"><h3>👩‍🍳 Crear nuevo taller</h3><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Nombre del taller</label><input type="text" id="nt-nombre" placeholder="Ej: Cookies decoradas"></div>
+      <div class="form-group"><label>Descripción</label><textarea id="nt-descripcion" rows="2" placeholder="Breve descripción de qué se aprende"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>Profesor/a</label><input type="text" id="nt-profesor" placeholder="Nombre del profesor"></div>
+        <div class="form-group"><label>Sucursal</label><select id="nt-sucursal">${opcionesSucursalHTML()}</select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Fecha</label><input type="date" id="nt-fecha"></div>
+        <div class="form-group"><label>Hora</label><input type="time" id="nt-hora"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Cupos</label><input type="number" id="nt-cupos" placeholder="10"></div>
+        <div class="form-group"><label>Precio</label><input type="number" id="nt-precio" placeholder="20000"></div>
+      </div>
+      ${inputImagenHTML('nt')}
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-action="cerrar-modal">Cancelar</button>
+      <button class="btn btn-primary" data-action="guardar-nuevo-taller">Crear taller</button>
+    </div>
+  `);
+  conectarInputImagen('nt');
+  modalContent.querySelector('[data-action="guardar-nuevo-taller"]').addEventListener('click', () => {
+    const nombre = document.getElementById('nt-nombre').value.trim() || "Taller sin nombre";
+    const descripcion = document.getElementById('nt-descripcion').value.trim() || "Sin descripción todavía.";
+    const profesor = document.getElementById('nt-profesor').value.trim() || "A confirmar";
+    const sucursal = document.getElementById('nt-sucursal').value;
+    const fecha = document.getElementById('nt-fecha').value || "2026-08-01";
+    const hora = document.getElementById('nt-hora').value || "16:00";
+    const cupos = Number(document.getElementById('nt-cupos').value) || 10;
+    const precio = Number(document.getElementById('nt-precio').value) || 20000;
+    const imagen = document.getElementById('nt-preview').dataset.value || null;
+
+    talleres.push({ nombre, descripcion, profesor, sucursal, fecha, hora, cupos, cuposOcupados:0, precio,
+      emoji:"🎨", color:"linear-gradient(135deg,#F6DEE3,#E9CE9E)", imagen });
+
+    cerrarModal();
+    mostrarToast('Taller creado correctamente', '👩‍🍳');
+    renderTalleres(); renderDashboard(); renderClienteTalleres(); renderCalendario(); renderCalendarioCliente();
+  });
+}
+
+function modalEditarTaller(index){
+  const t = talleres[index];
+  abrirModal(`
+    <div class="modal-header"><h3>✏️ Editar: ${t.nombre}</h3><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Nombre del taller</label><input type="text" id="et-nombre" value="${t.nombre}"></div>
+      <div class="form-group"><label>Descripción</label><textarea id="et-descripcion" rows="2">${t.descripcion}</textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>Profesor/a</label><input type="text" id="et-profesor" value="${t.profesor}"></div>
+        <div class="form-group"><label>Sucursal</label><select id="et-sucursal">${opcionesSucursalHTML(t.sucursal)}</select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Fecha</label><input type="date" id="et-fecha" value="${t.fecha}"></div>
+        <div class="form-group"><label>Hora</label><input type="time" id="et-hora" value="${t.hora}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Cupos totales</label><input type="number" id="et-cupos" value="${t.cupos}"></div>
+        <div class="form-group"><label>Precio</label><input type="number" id="et-precio" value="${t.precio}"></div>
+      </div>
+      ${inputImagenHTML('et', t.imagen)}
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-action="cerrar-modal">Cancelar</button>
+      <button class="btn btn-primary" data-action="guardar-edicion-taller" data-index="${index}">Guardar cambios</button>
+    </div>
+  `);
+  conectarInputImagen('et');
+  modalContent.querySelector('[data-action="guardar-edicion-taller"]').addEventListener('click', () => {
+    t.nombre = document.getElementById('et-nombre').value.trim() || t.nombre;
+    t.descripcion = document.getElementById('et-descripcion').value.trim();
+    t.profesor = document.getElementById('et-profesor').value.trim() || t.profesor;
+    t.sucursal = document.getElementById('et-sucursal').value;
+    t.fecha = document.getElementById('et-fecha').value || t.fecha;
+    t.hora = document.getElementById('et-hora').value || t.hora;
+    t.cupos = Number(document.getElementById('et-cupos').value) || t.cupos;
+    t.precio = Number(document.getElementById('et-precio').value) || t.precio;
+    const nuevaImagen = document.getElementById('et-preview').dataset.value;
+    if(nuevaImagen) t.imagen = nuevaImagen;
+
+    cerrarModal();
+    mostrarToast('Taller actualizado', '✓');
+    renderTalleres(); renderDashboard(); renderClienteTalleres(); renderCalendario(); renderCalendarioCliente();
+  });
+}
+
+function modalVerInscriptosTaller(index){
+  const t = talleres[index];
+  const inscriptos = alumnos.filter(a => a.taller === t.nombre);
+  const filas = inscriptos.map(a => `
+    <div class="modal-detail-row"><span>${a.nombre} · ${a.contacto}</span><span class="badge ${badgeClaseEstado(a.señaEstado)}">${a.señaEstado}</span></div>
+  `).join('') || '<p>Todavía no hay inscriptos.</p>';
+  abrirModal(`
+    <div class="modal-header"><h3>👥 Inscriptos: ${t.nombre}</h3><button class="modal-close">✕</button></div>
+    <div class="modal-body">${filas}</div>
+    <div class="modal-footer"><button class="btn btn-secondary" data-action="cerrar-modal">Cerrar</button></div>
+  `);
+}
+
+/* ---------------- Modales: gestión ADMIN de catálogo ---------------- */
+
+function modalNuevoProducto(){
+  abrirModal(`
+    <div class="modal-header"><h3>🍰 Agregar producto</h3><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Nombre del producto</label><input type="text" id="np-nombre" placeholder="Ej: Torta marmolada"></div>
+      <div class="form-group"><label>Categoría</label><input type="text" id="np-categoria" placeholder="Ej: Tortas, Cupcakes..."></div>
+      <div class="form-group"><label>Precio</label><input type="number" id="np-precio" placeholder="15000"></div>
+      ${inputImagenHTML('np')}
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-action="cerrar-modal">Cancelar</button>
+      <button class="btn btn-primary" data-action="guardar-nuevo-producto">Agregar producto</button>
+    </div>
+  `);
+  conectarInputImagen('np');
+  modalContent.querySelector('[data-action="guardar-nuevo-producto"]').addEventListener('click', () => {
+    const nombre = document.getElementById('np-nombre').value.trim() || "Producto sin nombre";
+    const categoria = document.getElementById('np-categoria').value.trim() || "General";
+    const precio = Number(document.getElementById('np-precio').value) || 0;
+    const imagen = document.getElementById('np-preview').dataset.value || null;
+    productos.push({ nombre, categoria, precio, emoji:"🍰", color:"linear-gradient(135deg,#F3E4CB,#E9CE9E)", imagen });
+    cerrarModal();
+    mostrarToast('Producto agregado al catálogo', '🍰');
+    renderFiltrosProductosAdmin(); renderProductosAdmin(); renderClienteFiltrosProductos(); renderClienteProductos();
+  });
+}
+
+function modalEditarProducto(index){
+  const p = productos[index];
+  abrirModal(`
+    <div class="modal-header"><h3>✏️ Editar producto</h3><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Nombre del producto</label><input type="text" id="ep-nombre" value="${p.nombre}"></div>
+      <div class="form-group"><label>Categoría</label><input type="text" id="ep-categoria" value="${p.categoria}"></div>
+      <div class="form-group"><label>Precio</label><input type="number" id="ep-precio" value="${p.precio}"></div>
+      ${inputImagenHTML('ep', p.imagen)}
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-action="eliminar-producto" data-index="${index}">🗑️ Eliminar</button>
+      <button class="btn btn-primary" data-action="guardar-edicion-producto" data-index="${index}">Guardar cambios</button>
+    </div>
+  `);
+  conectarInputImagen('ep');
+  modalContent.querySelector('[data-action="guardar-edicion-producto"]').addEventListener('click', () => {
+    p.nombre = document.getElementById('ep-nombre').value.trim() || p.nombre;
+    p.categoria = document.getElementById('ep-categoria').value.trim() || p.categoria;
+    p.precio = Number(document.getElementById('ep-precio').value) || p.precio;
+    const nuevaImagen = document.getElementById('ep-preview').dataset.value;
+    if(nuevaImagen) p.imagen = nuevaImagen;
+    cerrarModal();
+    mostrarToast('Producto actualizado', '✓');
+    renderFiltrosProductosAdmin(); renderProductosAdmin(); renderClienteFiltrosProductos(); renderClienteProductos();
+  });
+  modalContent.querySelector('[data-action="eliminar-producto"]').addEventListener('click', () => {
+    productos.splice(index, 1);
+    cerrarModal();
+    mostrarToast('Producto eliminado del catálogo', '🗑️');
+    renderFiltrosProductosAdmin(); renderProductosAdmin(); renderClienteFiltrosProductos(); renderClienteProductos();
+  });
+}
+
+function modalNuevoCliente(){
+  abrirModal(`
+    <div class="modal-header"><h3>👤 Nuevo cliente</h3><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Nombre</label><input type="text" id="ncl-nombre" placeholder="Nombre y apellido"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Teléfono</label><input type="text" id="ncl-telefono" placeholder="223 000-0000"></div>
+        <div class="form-group"><label>Email</label><input type="email" id="ncl-email" placeholder="correo@ejemplo.com"></div>
+      </div>
+      <div class="form-group"><label>Observaciones</label><textarea id="ncl-obs" rows="3" placeholder="Alergias, preferencias, etc."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-action="cerrar-modal">Cancelar</button>
+      <button class="btn btn-primary" data-action="guardar-cliente">Guardar cliente</button>
+    </div>
+  `);
+  modalContent.querySelector('[data-action="guardar-cliente"]').addEventListener('click', () => {
+    const nombre = document.getElementById('ncl-nombre').value.trim() || "Sin nombre";
+    const telefono = document.getElementById('ncl-telefono').value.trim() || "—";
+    const email = document.getElementById('ncl-email').value.trim() || "—";
+    const obs = document.getElementById('ncl-obs').value.trim() || "—";
+    clientes.unshift({ nombre, telefono, email, ultimoContacto:"—", obs });
+    cerrarModal();
+    mostrarToast('Cliente agregado correctamente', '👤');
+    renderClientes();
+  });
+}
+
+function modalVerReservaCumple(index){
+  const r = reservasCumple[index];
+  abrirModal(`
+    <div class="modal-header"><h3>Detalle del festejo</h3><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="modal-detail-row"><span>Cliente</span><span>${r.cliente}</span></div>
+      <div class="modal-detail-row"><span>Modalidad</span><span>${r.modalidad}</span></div>
+      <div class="modal-detail-row"><span>Fecha</span><span>${formatoFechaLarga(r.fecha)}</span></div>
+      <div class="modal-detail-row"><span>Sucursal</span><span>${r.sucursal}</span></div>
+      <div class="modal-detail-row"><span>Invitados</span><span>${r.invitados}</span></div>
+      <div class="modal-detail-row"><span>Seña</span><span>${r.señaEstado}</span></div>
+      <div class="modal-detail-row"><span>Estado</span><span>${r.estado}</span></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" data-action="cerrar-modal">Cerrar</button></div>
+  `);
+}
+
+/* ================================================================
+   MODO CLIENTE — render
+   ================================================================ */
+
+let clienteCategoriaActiva = "Todos";
+
+function renderClienteFiltrosProductos(){
+  const categorias = ["Todos", ...new Set(productos.map(p => p.categoria))];
+  const cont = document.getElementById('clienteCategoriaFiltros');
+  cont.innerHTML = categorias.map(c => `<button class="chip ${c === clienteCategoriaActiva ? 'active' : ''}" data-ccat="${c}">${c}</button>`).join('');
+  cont.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      clienteCategoriaActiva = chip.dataset.ccat;
+      renderClienteFiltrosProductos();
+      renderClienteProductos();
+    });
+  });
+}
+
+function renderClienteProductos(){
+  const grid = document.getElementById('clienteProductosGrid');
+  const lista = clienteCategoriaActiva === "Todos" ? productos : productos.filter(p => p.categoria === clienteCategoriaActiva);
+  grid.innerHTML = lista.map((p) => `
+    <div class="card producto-card">
+      <div class="producto-img" style="background:${p.color};">${p.imagen ? `<img src="${p.imagen}" alt="">` : p.emoji}</div>
+      <div class="producto-body">
+        <div class="producto-cat">${p.categoria}</div>
+        <h4>${p.nombre}</h4>
+        <div class="producto-footer"><span class="producto-price">${formatoMoneda(p.precio)}</span></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+let sucursalActivaCliente = "Todas";
+
+function renderClienteSucursalFiltros(){
+  const sucursales = ["Todas", ...config.sucursales.map(s => s.nombre)];
+  const cont = document.getElementById('clienteSucursalFiltros');
+  cont.innerHTML = sucursales.map(s => `<button class="chip ${s === sucursalActivaCliente ? 'active' : ''}" data-csuc="${s}">${s}</button>`).join('');
+  cont.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      sucursalActivaCliente = chip.dataset.csuc;
+      renderClienteSucursalFiltros();
+      renderClienteTalleres();
+    });
+  });
+}
+
+function renderClienteTalleres(){
+  const grid = document.getElementById('clienteTalleresGrid');
+  const lista = (sucursalActivaCliente === "Todas" ? talleres : talleres.filter(t => t.sucursal === sucursalActivaCliente))
+    .slice().sort((a,b) => a.fecha.localeCompare(b.fecha));
+  grid.innerHTML = lista.map((t) => {
+    const idx = talleres.indexOf(t);
+    const estado = estadoCuposTaller(t);
+    const agotado = estado === "Cupo completo";
+    const pct = Math.round((t.cuposOcupados / t.cupos) * 100);
+    return `
+    <div class="card taller-card ${agotado ? 'agotado' : ''}" data-action="ver-detalle-taller" data-index="${idx}">
+      <div class="taller-img" style="background:${t.color};">
+        ${t.imagen ? `<img src="${t.imagen}" alt="">` : t.emoji}
+        <span class="badge ${badgeClaseEstado(estado)}">${estado}</span>
+        <span class="sucursal-tag">${t.sucursal.replace('Sucursal ','')}</span>
+      </div>
+      <div class="taller-body">
+        <h4>${t.nombre}</h4>
+        <div class="taller-profe">👩‍🍳 Prof. ${t.profesor}</div>
+        <div class="taller-meta">
+          <span>📅 ${formatoFechaLarga(t.fecha)} · ${t.hora} hs</span>
+          <span>👥 ${t.cupos - t.cuposOcupados} cupos disponibles</span>
+        </div>
+        <div class="cupos-bar"><div class="cupos-fill" style="width:${pct}%;"></div></div>
+        <div class="taller-footer"><span class="taller-price">${formatoMoneda(t.precio)}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderModalidadesCumple(){
+  const grid = document.getElementById('modalidadesGrid');
+  grid.innerHTML = modalidadesCumple.map(m => `
+    <div class="card modalidad-card">
+      <div class="modalidad-img" style="background:${m.color};">${m.emoji}</div>
+      <div class="modalidad-body">
+        <h3>${m.nombre}</h3>
+        <p>${m.descripcion}</p>
+        <div class="modalidad-facts">${m.facts.map(f => `<span>${f}</span>`).join('')}</div>
+        <div class="modalidad-includes">${m.incluye.map(i => `<span class="include-pill">${i}</span>`).join('')}</div>
+        <div class="modalidad-price">${m.precioDesde}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ---------------- Navegación cliente ---------------- */
+
+function irACVista(cview){
+  document.querySelectorAll('.cview').forEach(v => v.classList.remove('active'));
+  document.getElementById(`cview-${cview}`).classList.add('active');
+  document.querySelectorAll('.client-nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll(`.client-nav-item[data-cview="${cview}"]`).forEach(n => n.classList.add('active'));
+  document.getElementById('clientMobileNav').classList.remove('open');
+  if(cview === 'calendario') renderCalendarioCliente();
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+document.querySelectorAll('.client-nav-item[data-cview]').forEach(btn => btn.addEventListener('click', () => irACVista(btn.dataset.cview)));
+document.getElementById('clientHamburger').addEventListener('click', () => document.getElementById('clientMobileNav').classList.toggle('open'));
+
+document.querySelectorAll('#eventosSubtabs .subtab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('#eventosSubtabs .subtab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const target = tab.dataset.etab;
+    document.getElementById('etab-talleres').style.display = target === 'talleres' ? 'block' : 'none';
+    document.getElementById('etab-cumple').style.display = target === 'cumple' ? 'block' : 'none';
+  });
+});
+
+/* ================================================================
+   FLUJO CLIENTE: detalle de taller + reserva + seña + WhatsApp
+   ================================================================ */
+
+function modalDetalleTaller(index){
+  const t = talleres[index];
+  const estado = estadoCuposTaller(t);
+  const agotado = estado === "Cupo completo";
+  abrirModal(`
+    <div class="modal-header"><h3>${t.nombre}</h3><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="modal-taller-img" style="background:${t.color};">${t.imagen ? `<img src="${t.imagen}" alt="">` : t.emoji}</div>
+      <p>${t.descripcion}</p>
+      <div class="modal-detail-row"><span>Profesor/a</span><span>${t.profesor}</span></div>
+      <div class="modal-detail-row"><span>Fecha y hora</span><span>${formatoFechaLarga(t.fecha)} · ${t.hora} hs</span></div>
+      <div class="modal-detail-row"><span>Sucursal</span><span>${t.sucursal}</span></div>
+      <div class="modal-detail-row"><span>Cupos</span><span>${t.cupos - t.cuposOcupados} disponibles de ${t.cupos}</span></div>
+      <div class="modal-detail-row"><span>Precio</span><span>${formatoMoneda(t.precio)}</span></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-action="cerrar-modal">Cerrar</button>
+      <button class="btn btn-primary" data-action="iniciar-reserva-taller" data-index="${index}" ${agotado ? 'disabled' : ''}>
+        ${agotado ? 'Sin cupos' : 'Anotarme'}
+      </button>
+    </div>
+  `);
+}
+
+function modalReservaTaller(index){
+  const t = talleres[index];
+  abrirModal(`
+    <div class="modal-header"><h3>${t.emoji} Anotarme: ${t.nombre}</h3><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="reserva-resumen">
+        <div class="modal-detail-row" style="border:none; padding:4px 0;"><span>Fecha</span><span>${formatoFechaLarga(t.fecha)} · ${t.hora} hs</span></div>
+        <div class="modal-detail-row" style="border:none; padding:4px 0;"><span>Sucursal</span><span>${t.sucursal}</span></div>
+        <div class="modal-detail-row" style="border:none; padding:4px 0;"><span>Precio total</span><span>${formatoMoneda(t.precio)}</span></div>
+      </div>
+      <div class="form-group"><label>Nombre y apellido</label><input type="text" id="at-nombre" placeholder="Tu nombre"></div>
+      <div class="form-group"><label>Teléfono</label><input type="tel" id="at-telefono" placeholder="223 000-0000"></div>
+
+      <div class="seña-box">
+        <p>Para reservar tu cupo, se solicita una seña de:</p>
+        <div class="seña-monto">${formatoMoneda(config.señaTaller)}</div>
+        <p>El resto se abona el día del taller</p>
+      </div>
+    </div>
+    <div class="modal-footer" style="flex-direction:column; align-items:stretch;">
+      <button class="btn mp-btn" data-action="pagar-seña-taller" data-index="${index}">💳 Pagar seña con Mercado Pago</button>
+      <button class="btn btn-secondary" data-action="cerrar-modal" style="justify-content:center;">Cancelar</button>
+    </div>
+  `);
+  modalContent.querySelector('[data-action="pagar-seña-taller"]').addEventListener('click', function(){
+    const nombre = document.getElementById('at-nombre').value.trim();
+    const telefono = document.getElementById('at-telefono').value.trim();
+    if(!nombre || !telefono){ mostrarToast('Completá tu nombre y teléfono para continuar', '⚠️'); return; }
+    this.disabled = true;
+    this.textContent = '⏳ Procesando pago...';
+    setTimeout(() => confirmarPagoSeñaTaller(index, nombre, telefono), 1100);
+  });
+}
+
+function confirmarPagoSeñaTaller(index, nombre, telefono){
+  const t = talleres[index];
+
+  if(t.cuposOcupados < t.cupos){
+    t.cuposOcupados++;
+  }
+  alumnos.push({ nombre, taller:t.nombre, contacto:telefono, señaEstado:"Cobrada" });
+
+  const mensajeWsp = `🎉 Nueva inscripción a taller\n\nTaller: ${t.nombre}\nFecha: ${formatoFechaLarga(t.fecha)} ${t.hora}hs\nSucursal: ${t.sucursal}\nAlumno/a: ${nombre}\nTeléfono: ${telefono}\nSeña: ${formatoMoneda(config.señaTaller)} (simulada — pago real vía Mercado Pago pendiente de integrar)`;
+
+  abrirModal(`
+    <div class="modal-header"><h3>✅ ¡Reserva confirmada!</h3><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="reserva-estado confirmada">
+        <span class="re-icon">✅</span>
+        <div class="re-text"><strong>Seña acreditada</strong><span>Tu lugar en "${t.nombre}" está reservado</span></div>
+      </div>
+      <p>Le avisamos a Dulces Caprichos que tu reserva quedó confirmada. Si querés, también podés enviarle el aviso vos misma:</p>
+    </div>
+    <div class="modal-footer" style="flex-direction:column; align-items:stretch;">
+      <a class="btn whatsapp-btn" href="${linkWhatsAppDueña(mensajeWsp)}" target="_blank" rel="noopener">💬 Avisar por WhatsApp</a>
+      <button class="btn btn-secondary" data-action="cerrar-modal" style="justify-content:center;">Cerrar</button>
+    </div>
+  `);
+
+  mostrarToast('¡Inscripción confirmada!', '🎉');
+  renderClienteTalleres(); renderTalleres(); renderDashboard(); renderCalendarioCliente(); renderCalendario();
+}
+
+/* ---------------- Reserva de cumpleaños (con seña) ---------------- */
+
+function manejarReservaCumpleForm(e){
+  e.preventDefault();
+  const modalidad = document.getElementById('rc-modalidad').value;
+  const nombre = document.getElementById('rc-nombre').value.trim();
+  const telefono = document.getElementById('rc-telefono').value.trim();
+  const fecha = document.getElementById('rc-fecha').value;
+  const sucursal = document.getElementById('rc-sucursal').value;
+  const invitados = document.getElementById('rc-invitados').value;
+  const comentarios = document.getElementById('rc-comentarios').value.trim();
+
+  if(!nombre || !telefono || !fecha || !invitados){
+    mostrarToast('Completá los campos obligatorios para continuar', '⚠️');
+    return;
+  }
+
+  abrirModal(`
+    <div class="modal-header"><h3>${modalidad === 'Pintura de yeso' ? '🎨' : '🎂'} Confirmá tu reserva</h3><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="reserva-resumen">
+        <div class="modal-detail-row" style="border:none; padding:4px 0;"><span>Modalidad</span><span>${modalidad}</span></div>
+        <div class="modal-detail-row" style="border:none; padding:4px 0;"><span>Fecha</span><span>${formatoFechaLarga(fecha)}</span></div>
+        <div class="modal-detail-row" style="border:none; padding:4px 0;"><span>Sucursal</span><span>${sucursal}</span></div>
+        <div class="modal-detail-row" style="border:none; padding:4px 0;"><span>Invitados</span><span>${invitados}</span></div>
+      </div>
+      <div class="seña-box">
+        <p>Para reservar la fecha, se solicita una seña de:</p>
+        <div class="seña-monto">${formatoMoneda(config.señaCumple)}</div>
+        <p>El resto se coordina directamente con la dueña</p>
+      </div>
+    </div>
+    <div class="modal-footer" style="flex-direction:column; align-items:stretch;">
+      <button class="btn mp-btn" data-action="pagar-seña-cumple">💳 Pagar seña con Mercado Pago</button>
+      <button class="btn btn-secondary" data-action="cerrar-modal" style="justify-content:center;">Cancelar</button>
+    </div>
+  `);
+
+  modalContent.querySelector('[data-action="pagar-seña-cumple"]').addEventListener('click', function(){
+    this.disabled = true;
+    this.textContent = '⏳ Procesando pago...';
+    setTimeout(() => confirmarPagoSeñaCumple({ modalidad, nombre, telefono, fecha, sucursal, invitados, comentarios }), 1100);
+  });
+}
+
+function confirmarPagoSeñaCumple(datos){
+  reservasCumple.unshift({
+    cliente: datos.nombre, modalidad: datos.modalidad, fecha: datos.fecha, sucursal: datos.sucursal,
+    invitados: Number(datos.invitados), señaEstado:"Cobrada", estado:"Confirmado"
+  });
+  clientes.unshift({ nombre:datos.nombre, telefono:datos.telefono, email:"—", ultimoContacto: formatoFechaLarga(datos.fecha), obs:"Reserva de festejo desde el sitio" });
+
+  const mensajeWsp = `🎂 Nueva reserva de festejo\n\nModalidad: ${datos.modalidad}\nFecha: ${formatoFechaLarga(datos.fecha)}\nSucursal: ${datos.sucursal}\nCliente: ${datos.nombre}\nTeléfono: ${datos.telefono}\nInvitados: ${datos.invitados}\nComentarios: ${datos.comentarios || '—'}\nSeña: ${formatoMoneda(config.señaCumple)} (simulada — pago real vía Mercado Pago pendiente de integrar)`;
+
+  abrirModal(`
+    <div class="modal-header"><h3>✅ ¡Reserva confirmada!</h3><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="reserva-estado confirmada">
+        <span class="re-icon">✅</span>
+        <div class="re-text"><strong>Seña acreditada</strong><span>Tu festejo quedó reservado para el ${formatoFechaLarga(datos.fecha)}</span></div>
+      </div>
+      <p>Le avisamos a Dulces Caprichos que tu reserva quedó confirmada. Si querés, también podés enviarle el aviso vos misma:</p>
+    </div>
+    <div class="modal-footer" style="flex-direction:column; align-items:stretch;">
+      <a class="btn whatsapp-btn" href="${linkWhatsAppDueña(mensajeWsp)}" target="_blank" rel="noopener">💬 Avisar por WhatsApp</a>
+      <button class="btn btn-secondary" data-action="cerrar-modal" style="justify-content:center;">Cerrar</button>
+    </div>
+  `);
+
+  document.getElementById('formReservaCumple').reset();
+  mostrarToast('¡Reserva confirmada!', '🎂');
+  renderCumpleanosAdmin(); renderClientes(); renderDashboard(); renderCalendarioCliente(); renderCalendario();
+}
+
+document.getElementById('formReservaCumple').addEventListener('submit', manejarReservaCumpleForm);
+
+/* ================================================================
+   DELEGACIÓN GLOBAL DE EVENTOS (data-action)
+   ================================================================ */
+
+document.addEventListener('click', (e) => {
+  const target = e.target.closest('[data-action]');
+  if(!target) return;
+  const action = target.dataset.action;
+  const index = target.dataset.index;
+
+  switch(action){
+    // Admin: talleres
+    case 'new-taller': modalNuevoTaller(); break;
+    case 'editar-taller': modalEditarTaller(Number(index)); break;
+    case 'ver-inscriptos-taller': modalVerInscriptosTaller(Number(index)); break;
+    case 'toggle-seña-alumno': {
+      const a = alumnos[Number(index)];
+      a.señaEstado = a.señaEstado === "Cobrada" ? "Pendiente" : "Cobrada";
+      renderTalleres(); renderDashboard();
+      break;
+    }
+    // Admin: cumpleaños
+    case 'ver-reserva-cumple': modalVerReservaCumple(Number(index)); break;
+    case 'toggle-seña-cumple': {
+      const r = reservasCumple[Number(index)];
+      r.señaEstado = r.señaEstado === "Cobrada" ? "Pendiente" : "Cobrada";
+      r.estado = r.señaEstado === "Cobrada" ? "Confirmado" : "Pendiente de seña";
+      renderCumpleanosAdmin(); renderDashboard();
+      break;
+    }
+    // Admin: catálogo
+    case 'new-producto': modalNuevoProducto(); break;
+    case 'editar-producto': modalEditarProducto(Number(index)); break;
+    // Admin: clientes
+    case 'new-cliente': modalNuevoCliente(); break;
+    // Admin: config
+    case 'save-config': mostrarToast('Datos del negocio actualizados', '⚙️'); break;
+    // Cliente: talleres
+    case 'ver-detalle-taller': modalDetalleTaller(Number(index)); break;
+    case 'ver-detalle-taller-desde-cal': cerrarModal(); setTimeout(() => modalDetalleTaller(Number(index)), 200); break;
+    case 'iniciar-reserva-taller': modalReservaTaller(Number(index)); break;
+  }
+});
+
+document.getElementById('notifBtn').addEventListener('click', () => mostrarToast('Tenés 3 notificaciones nuevas', '🔔'));
+
+/* ================================================================
+   SWITCH DE MODOS: cliente ↔ admin, con login simulado
+   ================================================================ */
+
+const clientShell = document.getElementById('clientShell');
+const adminShell = document.getElementById('adminShell');
+const loginOverlay = document.getElementById('loginOverlay');
+
+function mostrarModoCliente(){ clientShell.classList.add('active'); adminShell.classList.remove('active'); window.scrollTo({ top:0 }); }
+function mostrarModoAdmin(){ clientShell.classList.remove('active'); adminShell.classList.add('active'); window.scrollTo({ top:0 }); }
+
+function abrirLogin(){
+  loginOverlay.classList.add('active');
+  document.getElementById('loginError').classList.remove('show');
+  document.getElementById('login-usuario').focus();
+}
+function cerrarLogin(){
+  loginOverlay.classList.remove('active');
+  document.getElementById('formLogin').reset();
+  document.getElementById('loginError').classList.remove('show');
+}
+
+document.getElementById('staffAccessBtn').addEventListener('click', abrirLogin);
+document.getElementById('staffAccessBtnFooter').addEventListener('click', abrirLogin);
+document.getElementById('loginCloseBtn').addEventListener('click', cerrarLogin);
+loginOverlay.addEventListener('click', (e) => { if(e.target === loginOverlay) cerrarLogin(); });
+
+document.getElementById('formLogin').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const usuario = document.getElementById('login-usuario').value.trim();
+  const clave = document.getElementById('login-clave').value.trim();
+  if(usuario === 'admin' && clave === 'admin'){
+    cerrarLogin();
+    mostrarModoAdmin();
+    mostrarToast('Bienvenida, Bel', '👋');
+  } else {
+    document.getElementById('loginError').classList.add('show');
+  }
+});
+
+document.getElementById('exitAdminBtn').addEventListener('click', () => {
+  mostrarModoCliente();
+  mostrarToast('Volviste al sitio público', '🍰');
+});
+
+/* ================================================================
+   INICIALIZACIÓN
+   ================================================================ */
+
+function init(){
+  // Admin
+  renderDashboard();
+  renderTalleres();
+  renderCumpleanosAdmin();
+  renderFiltrosProductosAdmin();
+  renderProductosAdmin();
+  renderClientes();
+  renderLeyendaCalendario('calLegend');
+  renderCalendario();
+
+  // Cliente
+  renderClienteFiltrosProductos();
+  renderClienteProductos();
+  renderClienteSucursalFiltros();
+  renderClienteTalleres();
+  renderModalidadesCumple();
+  renderLeyendaCalendario('calLegendCliente');
+  renderCalendarioCliente();
+
+  // Arranca en modo cliente, sin preguntar nada
+  mostrarModoCliente();
+}
+
+init();
+</script>
+</body>
+</html>

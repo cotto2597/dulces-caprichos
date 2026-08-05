@@ -178,11 +178,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 .client-brand{ display:flex; align-items:center; gap:14px; }
 .brand-mark{
-  height:64px; width:auto; aspect-ratio:1/1;
+  height:80px; width:auto; max-width:280px;
   display:flex; align-items:center; justify-content:center;
   flex-shrink:0; overflow:hidden;
 }
-.brand-mark img{ height:100%; width:auto; object-fit:contain; }
+.brand-mark img{ height:100%; width:auto; max-width:100%; object-fit:contain; }
 .brand-tagline{
   font-size:10.5px; color:var(--brown); font-weight:500; letter-spacing:0.03em;
   line-height:1.5; padding-left:14px; border-left:1px solid rgba(74,52,40,0.15);
@@ -245,6 +245,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .sucursal-item .s-name{ font-size:15px; font-weight:700; color:var(--choc); font-family:'Fredoka',sans-serif; }
 .sucursal-item .s-addr{ font-size:11.5px; color:var(--brown); }
 .footer-contact-line{ font-size:12.5px; color:var(--choc-soft); margin-bottom:6px; font-weight:500; }
+.footer-whatsapp-link{
+  display:inline-flex; align-items:center; gap:5px;
+  text-decoration:none; color:var(--pink-deep); font-weight:600;
+  transition:color var(--transition), gap var(--transition);
+}
+.footer-whatsapp-link:hover{ color:var(--pink); gap:8px; }
+.footer-whatsapp-link .fwl-arrow{ font-size:11px; }
 .footer-bottom{
   max-width:1180px; margin:0 auto; padding-top:16px;
   border-top:1px dashed rgba(74,52,40,0.15);
@@ -252,10 +259,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 .footer-bottom p{ font-size:11.5px; color:var(--brown-light); }
 .kaizek-credit{
-  display:flex; align-items:center; gap:7px;
-  font-size:11px; color:var(--brown-light);
+  display:flex; align-items:center; gap:8px;
+  font-size:11.5px; color:var(--brown-light);
 }
-.kaizek-credit img{ height:18px; width:auto; opacity:0.85; }
+.kaizek-credit img{ height:30px; width:auto; }
 .kaizek-credit strong{ color:var(--brown); font-weight:600; }
 .staff-access-link{
   border:none; background:transparent; font-size:11.5px; color:var(--brown-light);
@@ -285,12 +292,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   overflow:hidden;
 }
 .quienes-somos-img{
-  width:120px; height:120px; border-radius:50%; flex-shrink:0;
-  background:linear-gradient(135deg, var(--pink-pale), var(--pink-soft));
-  display:flex; align-items:center; justify-content:center; font-size:52px;
+  width:170px; height:190px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; font-size:60px;
   overflow:hidden;
 }
-.quienes-somos-img img{ width:70%; height:70%; object-fit:contain; }
+.quienes-somos-img img{ width:100%; height:100%; object-fit:contain; }
 .quienes-somos-body .qs-eyebrow{
   font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
   color:var(--pink-deep);
@@ -413,9 +419,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
    ============================================================ */
 .legend-item{ display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--brown); font-weight:500; }
 .legend-dot{ width:9px; height:9px; border-radius:50%; }
-.calendar-grid{ display:grid; grid-template-columns:repeat(7, minmax(110px, 1fr)); gap:6px; min-width:760px; }
+.calendar-grid{ display:grid; grid-template-columns:repeat(7, minmax(0, 1fr)); gap:6px; width:100%; }
 .cal-dow{ font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--brown); font-weight:700; text-align:center; padding:8px 0; }
-.cal-day{ min-height:100px; border-radius:14px; background:var(--peach-deep); padding:8px; display:flex; flex-direction:column; gap:4px; transition:background var(--transition); }
+.cal-day{ min-height:100px; border-radius:14px; background:var(--peach-deep); padding:8px; display:flex; flex-direction:column; gap:4px; transition:background var(--transition); overflow:hidden; }
 .cal-day.empty{ background:transparent; }
 .cal-day.has-events{ cursor:pointer; }
 .cal-day.has-events:hover{ background:#F2D9CB; }
@@ -423,6 +429,20 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .cal-daynum{ font-size:12px; font-weight:700; color:var(--choc); }
 .cal-event{ font-size:10px; padding:3px 7px; border-radius:7px; color:var(--white); font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .cal-more{ font-size:10px; color:var(--brown); font-weight:600; padding-left:4px; }
+
+/* Puntitos de color: reemplazan el texto de cada evento cuando la celda
+   es muy angosta para mostrarlo legible (pantallas chicas) */
+.cal-event-dots{ display:none; flex-wrap:wrap; gap:3px; }
+.cal-event-dot{ width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+
+@media (max-width:640px){
+  .calendar-grid{ gap:3px; }
+  .cal-dow{ font-size:9px; padding:5px 0; letter-spacing:0; }
+  .cal-day{ min-height:52px; border-radius:9px; padding:4px; gap:3px; }
+  .cal-daynum{ font-size:10.5px; }
+  .cal-event, .cal-more{ display:none; }
+  .cal-event-dots{ display:flex; }
+}
 
 /* ============================================================
    MODAL genérico (compartido)
@@ -528,13 +548,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   position:fixed; top:0; left:0; bottom:0; z-index:100; transition:transform var(--transition);
 }
 .sidebar-brand{
-  padding:26px 22px 20px; position:relative; display:flex; align-items:center; gap:12px;
+  padding:22px 22px 18px; position:relative; display:flex; align-items:center; gap:12px;
   border-bottom:1px solid rgba(74,52,40,0.07);
 }
 .sidebar-brand::after{
   content:""; position:absolute; left:0; right:0; bottom:-9px; height:16px;
   background:radial-gradient(circle at 10px 0, transparent 8px, var(--white) 8.5px) 0 -8px/20px 16px repeat-x;
 }
+.sidebar-brand .brand-mark{ height:68px; }
 .sidebar-brand .brand-tagline{ font-size:11px; text-transform:uppercase; }
 
 .sidebar-nav{ flex:1; padding:22px 14px; display:flex; flex-direction:column; gap:3px; overflow-y:auto; margin-top:6px; }
@@ -738,8 +759,8 @@ tbody tr:last-child td{ border-bottom:none; }
         <div class="quienes-somos-body">
           <span class="qs-eyebrow">Quiénes somos</span>
           <h2>Dulces Caprichos</h2>
-          <p>Somos una pastelería y cafetería de Mar del Plata donde elaboramos productos artesanales y combinamos la gastronomía con propuestas creativas para disfrutar en familia, con amigos o en pareja.
-          Además de nuestra carta de pastelería y cafetería, organizamos talleres para todas las edades y celebraciones personalizadas. Quienes nos visitan también pueden transformar una merienda o un desayuno en un momento diferente, dejando volar su creatividad con pinceles y témperas mientras disfrutan de algo rico.</p>
+          <p>Somos una pastelería y cafetería de Mar del Plata donde elaboramos productos artesanales y combinamos la gastronomía con propuestas creativas para disfrutar en familia, con amigos o en pareja.</p>
+          <p>Además de nuestra carta de pastelería y cafetería, organizamos talleres para todas las edades y celebraciones personalizadas. Quienes nos visitan también pueden transformar una merienda o un desayuno en un momento diferente, dejando volar su creatividad con pinceles y témperas mientras disfrutan de algo rico.</p>
           <p>Podés encontrarnos en nuestras sucursales de Santa Fe y de 25 de Mayo, dos espacios pensados para compartir, aprender y disfrutar alrededor de la pastelería.</p>
         </div>
       </div>
@@ -901,7 +922,7 @@ tbody tr:last-child td{ border-bottom:none; }
       <div class="footer-col">
         <h4>💬 Contacto</h4>
         <p class="footer-contact-line">📷 @dulcescaprichos_mdp</p>
-        <p class="footer-contact-line">WhatsApp para consultas</p>
+        <a class="footer-contact-line footer-whatsapp-link" id="footerWhatsappLink" href="#" target="_blank" rel="noopener">📱 WhatsApp para consultas <span class="fwl-arrow">↗</span></a>
       </div>
     </div>
     <div class="footer-bottom">
@@ -925,12 +946,11 @@ tbody tr:last-child td{ border-bottom:none; }
     <h3>Acceso administrador</h3>
     <p class="login-sub">Ingresá tus credenciales para gestionar el negocio</p>
     <form id="formLogin">
-      <div class="form-group"><label>Usuario</label><input type="text" id="login-usuario" placeholder="admin" autocomplete="username"></div>
+      <div class="form-group"><label>Email</label><input type="email" id="login-email" placeholder="tu@email.com" autocomplete="username"></div>
       <div class="form-group"><label>Contraseña</label><input type="password" id="login-clave" placeholder="••••••••" autocomplete="current-password"></div>
-      <p class="login-error" id="loginError">Usuario o contraseña incorrectos.</p>
+      <p class="login-error" id="loginError">Email o contraseña incorrectos.</p>
       <button type="submit" class="btn btn-primary login-submit">Ingresar</button>
     </form>
-    <p class="login-hint">Prototipo de demostración · usuario: <strong>admin</strong> · clave: <strong>admin</strong></p>
   </div>
 </div>
 
@@ -1180,7 +1200,7 @@ tbody tr:last-child td{ border-bottom:none; }
             <h4 style="font-size:15px; margin-bottom:16px;">🏪 Datos generales</h4>
             <div class="form-group"><label>Nombre del negocio</label><input type="text" value="Dulces Caprichos"></div>
             <div class="form-group"><label>Instagram</label><input type="text" value="@dulcescaprichos_mdp"></div>
-            <div class="form-group"><label>WhatsApp de la dueña</label><input type="tel" id="cfg-whatsapp-dueña" value="5492233463787"></div>
+            <div class="form-group"><label>WhatsApp de la dueña</label><input type="tel" id="cfg-whatsapp-dueña" value="5492236002901"></div>
             <p class="form-hint" style="margin-bottom:16px;">A este número se le arma el mensaje automático de aviso de reservas.</p>
             <button class="btn btn-primary" data-action="save-config">Guardar cambios</button>
           </div>
@@ -1218,6 +1238,9 @@ import {
   getFirestore, collection, doc, onSnapshot, getDocs,
   addDoc, updateDoc, deleteDoc, setDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCSRXVjcL33kFVb7H9jX4BWdk042NNSMfY",
@@ -1230,6 +1253,7 @@ const firebaseConfig = {
 
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
+const auth = getAuth(firebaseApp);
 
 /* Nombres de colecciones en Firestore */
 const COL = {
@@ -1242,7 +1266,7 @@ const COL = {
 /* ---------------- CONFIGURACIÓN DEL NEGOCIO ---------------- */
 
 const config = {
-  whatsappDueña: "5492233463787", // formato internacional sin +
+  whatsappDueña: "5492236002901", // formato internacional sin +
   señaCumple: 10000, // seña única para reservas de cumpleaños (los talleres tienen la suya propia)
   sucursales: [
     { nombre:"Sucursal Santa Fe", direccion:"Santa Fe 3097, esq. Avellaneda" },
@@ -1802,6 +1826,9 @@ function construirCalendarioHTML(mes, anio, gridId, { clickable=false, soloTipo=
       `<div class="cal-event" style="background:${tipoColor[e.tipo]};" title="${e.texto}">${e.texto}</div>`
     ).join('');
     const masHtml = eventosDia.length > 2 ? `<div class="cal-more">+${eventosDia.length - 2} más</div>` : '';
+    const dotsHtml = eventosDia.length > 0
+      ? `<div class="cal-event-dots">${eventosDia.map(e => `<span class="cal-event-dot" style="background:${tipoColor[e.tipo]};" title="${e.texto}"></span>`).join('')}</div>`
+      : '';
     const clickAttr = (clickable && eventosDia.length > 0) ? `data-caldia="${d}" data-calmes="${mes}" data-calanio="${anio}"` : '';
     const clickClass = (clickable && eventosDia.length > 0) ? 'has-events' : '';
     html += `
@@ -1809,6 +1836,7 @@ function construirCalendarioHTML(mes, anio, gridId, { clickable=false, soloTipo=
         <div class="cal-daynum">${d}</div>
         ${eventosHtml}
         ${masHtml}
+        ${dotsHtml}
       </div>`;
   }
   grid.innerHTML = html;
@@ -1866,6 +1894,7 @@ function renderCalendarioCumple(){
       <div class="cal-day ${esHoy ? 'today' : ''} ${ocupado ? 'ocupado' : ''}">
         <div class="cal-daynum">${d}</div>
         ${ocupado ? '<div class="cal-event" style="background:var(--danger);">Reservado</div>' : ''}
+        ${ocupado ? '<div class="cal-event-dots"><span class="cal-event-dot" style="background:var(--danger);" title="Reservado"></span></div>' : ''}
       </div>`;
   }
   grid.innerHTML = html;
@@ -2756,7 +2785,7 @@ document.getElementById('notifMarcarLeidas').addEventListener('click', (e) => {
 });
 
 /* ================================================================
-   SWITCH DE MODOS: cliente ↔ admin, con login simulado
+   SWITCH DE MODOS: cliente ↔ admin, con login real (Firebase Auth)
    ================================================================ */
 
 const clientShell = document.getElementById('clientShell');
@@ -2769,7 +2798,7 @@ function mostrarModoAdmin(){ clientShell.classList.remove('active'); adminShell.
 function abrirLogin(){
   loginOverlay.classList.add('active');
   document.getElementById('loginError').classList.remove('show');
-  document.getElementById('login-usuario').focus();
+  document.getElementById('login-email').focus();
 }
 function cerrarLogin(){
   loginOverlay.classList.remove('active');
@@ -2781,20 +2810,51 @@ document.getElementById('staffAccessBtn').addEventListener('click', abrirLogin);
 document.getElementById('loginCloseBtn').addEventListener('click', cerrarLogin);
 loginOverlay.addEventListener('click', (e) => { if(e.target === loginOverlay) cerrarLogin(); });
 
-document.getElementById('formLogin').addEventListener('submit', (e) => {
+/* Mensajes de error legibles según el código que devuelve Firebase */
+function mensajeErrorLogin(codigo){
+  const mapa = {
+    'auth/invalid-email': 'Ese email no tiene un formato válido.',
+    'auth/user-not-found': 'No encontramos una cuenta con ese email.',
+    'auth/wrong-password': 'La contraseña es incorrecta.',
+    'auth/invalid-credential': 'Email o contraseña incorrectos.',
+    'auth/too-many-requests': 'Demasiados intentos. Esperá un momento y volvé a intentar.',
+    'auth/network-request-failed': 'No hay conexión con el servidor. Revisá tu internet.',
+  };
+  return mapa[codigo] || 'No se pudo iniciar sesión. Intentá de nuevo.';
+}
+
+document.getElementById('formLogin').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const usuario = document.getElementById('login-usuario').value.trim();
-  const clave = document.getElementById('login-clave').value.trim();
-  if(usuario === 'admin' && clave === 'admin'){
+  const email = document.getElementById('login-email').value.trim();
+  const clave = document.getElementById('login-clave').value;
+  const boton = document.querySelector('.login-submit');
+  const errorEl = document.getElementById('loginError');
+
+  errorEl.classList.remove('show');
+  boton.disabled = true;
+  boton.textContent = 'Ingresando...';
+
+  try{
+    await signInWithEmailAndPassword(auth, email, clave);
     cerrarLogin();
     mostrarModoAdmin();
     mostrarToast('Bienvenida, Bel', '👋');
-  } else {
-    document.getElementById('loginError').classList.add('show');
+  } catch(error){
+    console.error('Error al iniciar sesión:', error);
+    errorEl.textContent = mensajeErrorLogin(error.code);
+    errorEl.classList.add('show');
+  } finally{
+    boton.disabled = false;
+    boton.textContent = 'Ingresar';
   }
 });
 
-document.getElementById('exitAdminBtn').addEventListener('click', () => {
+document.getElementById('exitAdminBtn').addEventListener('click', async () => {
+  try{
+    await signOut(auth);
+  } catch(error){
+    console.error('Error al cerrar sesión:', error);
+  }
   mostrarModoCliente();
   mostrarToast('Volviste al sitio público', '🍰');
 });
@@ -2808,6 +2868,9 @@ async function init(){
   renderLeyendaCalendario('calLegend');
   renderModalidadesCumple();
   renderNotificaciones();
+
+  // Footer: link directo al WhatsApp de la dueña para consultas generales
+  document.getElementById('footerWhatsappLink').href = `https://wa.me/${config.whatsappDueña}`;
 
   // Arranca en modo cliente, sin preguntar nada
   mostrarModoCliente();
@@ -2827,6 +2890,17 @@ async function init(){
     await limpiarVencidos();
     setInterval(limpiarVencidos, 60 * 60 * 1000);
   }, 1500);
+
+  // Mantiene el panel admin sincronizado con el estado real de sesión:
+  // si Belén ya está logueada (por ejemplo, recargó la página estando
+  // en el panel), la lleva directo ahí sin pedirle loguearse de nuevo.
+  let primeraVerificacion = true;
+  onAuthStateChanged(auth, (usuario) => {
+    if(usuario && primeraVerificacion){
+      mostrarModoAdmin();
+    }
+    primeraVerificacion = false;
+  });
 }
 
 init();

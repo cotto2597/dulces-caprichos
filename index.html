@@ -885,8 +885,8 @@ tbody tr:last-child td{ border-bottom:none; }
             </div>
             <div class="form-group"><label>Sucursal</label>
               <select id="rc-sucursal">
-                <option>Santa Fe 3097</option>
-                <option>25 de Mayo 2954</option>
+                <option value="Sucursal Santa Fe">Santa Fe 3097</option>
+                <option value="Sucursal 25 de Mayo">25 de Mayo 2954</option>
               </select>
             </div>
           </div>
@@ -1084,10 +1084,6 @@ tbody tr:last-child td{ border-bottom:none; }
             <div class="stat-icon" style="background:var(--sage-bg);">🧁</div>
             <div class="stat-label" style="font-size:14px; color:var(--choc); font-weight:600;">Nuevo producto</div>
           </button>
-          <button class="card quick-access" data-action="new-cliente">
-            <div class="stat-icon" style="background:var(--info-bg);">👤</div>
-            <div class="stat-label" style="font-size:14px; color:var(--choc); font-weight:600;">Nuevo cliente</div>
-          </button>
         </div>
 
       </section>
@@ -1097,21 +1093,36 @@ tbody tr:last-child td{ border-bottom:none; }
         <div class="section-heading">
           <div>
             <h3>Festejos de cumpleaños</h3>
-            <p class="sub">Reservas de merienda temática y pintura de yeso</p>
+            <p class="sub">Reservas y modalidades disponibles</p>
           </div>
         </div>
 
-        <div class="card table-card">
-          <div class="table-wrap">
-            <table id="tablaCumpleBody">
-              <thead>
-                <tr>
-                  <th>Cliente</th><th>Modalidad</th><th>Fecha</th><th>Sucursal</th><th>Invitados</th><th>Seña</th><th>Estado</th><th></th>
-                </tr>
-              </thead>
-              <tbody id="tablaCumpleTbody"></tbody>
-            </table>
+        <div class="subtabs" id="cumpleAdminSubtabs">
+          <button class="subtab active" data-catab="reservas">📋 Reservas</button>
+          <button class="subtab" data-catab="modalidades">🎨 Modalidades</button>
+        </div>
+
+        <div id="catab-reservas">
+          <div class="card table-card">
+            <div class="table-wrap">
+              <table id="tablaCumpleBody">
+                <thead>
+                  <tr>
+                    <th>Cliente</th><th>Modalidad</th><th>Fecha</th><th>Sucursal</th><th>Invitados</th><th>Seña</th><th>Estado</th><th></th>
+                  </tr>
+                </thead>
+                <tbody id="tablaCumpleTbody"></tbody>
+              </table>
+            </div>
           </div>
+        </div>
+
+        <div id="catab-modalidades" style="display:none;">
+          <div class="section-heading">
+            <p class="sub">Estas son las opciones que ve el cliente al reservar un festejo</p>
+            <button class="btn btn-primary" data-action="new-modalidad-cumple">➕ Nueva modalidad</button>
+          </div>
+          <div class="modalidad-grid" id="modalidadesAdminGrid"></div>
         </div>
       </section>
 
@@ -1181,7 +1192,8 @@ tbody tr:last-child td{ border-bottom:none; }
           </div>
         </div>
 
-        <div style="display:flex; gap:14px; margin-bottom:18px; flex-wrap:wrap;" id="calLegend"></div>
+        <div style="display:flex; gap:14px; margin-bottom:8px; flex-wrap:wrap;" id="calLegend"></div>
+        <div style="display:flex; gap:14px; margin-bottom:18px; flex-wrap:wrap;" id="calLegendSucursales"></div>
 
         <div class="card" style="padding:18px; overflow-x:auto;">
           <div class="calendar-grid" id="calendarGrid"></div>
@@ -1202,8 +1214,8 @@ tbody tr:last-child td{ border-bottom:none; }
             <h4 style="font-size:15px; margin-bottom:16px;">🏪 Datos generales</h4>
             <div class="form-group"><label>Nombre del negocio</label><input type="text" value="Dulces Caprichos"></div>
             <div class="form-group"><label>Instagram</label><input type="text" value="@dulcescaprichos_mdp"></div>
-            <div class="form-group"><label>WhatsApp de la dueña</label><input type="tel" id="cfg-whatsapp-dueña" value="5492236002901"></div>
-            <p class="form-hint" style="margin-bottom:16px;">A este número se le arma el mensaje automático de aviso de reservas.</p>
+            <div class="form-group"><label>WhatsApp de consultas generales</label><input type="tel" id="cfg-whatsapp-dueña" value="5492236002901"></div>
+            <p class="form-hint" style="margin-bottom:16px;">Es el que aparece en el pie de página del sitio. Las reservas de talleres y cumpleaños usan el WhatsApp de la sucursal correspondiente (ver al lado).</p>
             <button class="btn btn-primary" data-action="save-config">Guardar cambios</button>
           </div>
 
@@ -1211,8 +1223,11 @@ tbody tr:last-child td{ border-bottom:none; }
             <h4 style="font-size:15px; margin-bottom:16px;">📍 Sucursales</h4>
             <div class="form-group"><label>Sucursal 1 — Nombre</label><input type="text" value="Sucursal Santa Fe"></div>
             <div class="form-group"><label>Sucursal 1 — Dirección</label><input type="text" value="Santa Fe 3097, esq. Avellaneda"></div>
-            <div class="form-group"><label>Sucursal 2 — Nombre</label><input type="text" value="Sucursal 25 de Mayo"></div>
+            <div class="form-group"><label>Sucursal 1 — WhatsApp</label><input type="tel" value="542235969835"></div>
+            <div class="form-group" style="margin-top:16px;"><label>Sucursal 2 — Nombre</label><input type="text" value="Sucursal 25 de Mayo"></div>
             <div class="form-group"><label>Sucursal 2 — Dirección</label><input type="text" value="25 de Mayo 2954"></div>
+            <div class="form-group"><label>Sucursal 2 — WhatsApp</label><input type="tel" value="5492236965567"></div>
+            <p class="form-hint">Las reservas de talleres y cumpleaños de cada sucursal le avisan a este número.</p>
 
             <h4 style="font-size:15px; margin:22px 0 16px;">💳 Seña de cumpleaños</h4>
             <div class="form-group"><label>Monto de la seña</label><input type="text" value="$10.000"></div>
@@ -1263,18 +1278,30 @@ const COL = {
   alumnos: "alumnos",
   reservasCumple: "reservasCumple",
   productos: "productos",
+  modalidadesCumple: "modalidadesCumple",
 };
 
 /* ---------------- CONFIGURACIÓN DEL NEGOCIO ---------------- */
 
 const config = {
-  whatsappDueña: "5492236002901", // formato internacional sin +
+  whatsappDueña: "5492236002901", // WhatsApp de consultas generales (footer, no depende de sucursal)
   señaCumple: 10000, // seña única para reservas de cumpleaños (los talleres tienen la suya propia)
   sucursales: [
-    { nombre:"Sucursal Santa Fe", direccion:"Santa Fe 3097, esq. Avellaneda" },
-    { nombre:"Sucursal 25 de Mayo", direccion:"25 de Mayo 2954" },
+    { nombre:"Sucursal Santa Fe", direccion:"Santa Fe 3097, esq. Avellaneda", whatsapp:"542235969835", colorMarca:"#7B93B0" },
+    { nombre:"Sucursal 25 de Mayo", direccion:"25 de Mayo 2954", whatsapp:"5492236965567", colorMarca:"#B4884A" },
   ],
 };
+
+/* Busca los datos completos de una sucursal a partir de su nombre */
+function datosSucursal(nombreSucursal){
+  return config.sucursales.find(s => s.nombre === nombreSucursal) || null;
+}
+
+/* WhatsApp correspondiente a una sucursal, con fallback al general si no se encuentra */
+function whatsappDeSucursal(nombreSucursal){
+  const s = datosSucursal(nombreSucursal);
+  return (s && s.whatsapp) ? s.whatsapp : config.whatsappDueña;
+}
 
 /* ---------------- DATOS SEMILLA (solo para la primera carga) ---------------- */
 /* Si Firestore está vacío, se suben estos datos de ejemplo una única vez.
@@ -1371,10 +1398,11 @@ let talleres = [];
 let alumnos = [];
 let reservasCumple = [];
 let productos = [];
+let modalidadesCumple = [];
 
-/* ---------------- DATOS: MODALIDADES DE CUMPLEAÑOS (fijas, no requieren base de datos) ---------------- */
+/* ---------------- DATOS: MODALIDADES DE CUMPLEAÑOS (editable desde el admin) ---------------- */
 
-const modalidadesCumple = [
+const SEED_modalidadesCumple = [
   { nombre:"Merienda de cumpleaños", emoji:"🎂", color:"linear-gradient(135deg,#F6DEE3,#F1C9D2)",
     descripcion:"Armamos un festejo íntimo con una merienda súper completa, dulce y salada, pensada según la cantidad de invitados.",
     precioDesde:"Consultar según invitados",
@@ -1388,7 +1416,7 @@ const modalidadesCumple = [
 ];
 
 const tipoColor = { taller:"#D45F84", cumple:"#D9A441" };
-const tipoLabel = { taller:"Taller", cumple:"Festejo" };
+const tipoLabel = { taller:"Talleres", cumple:"Festejos" };
 
 /* ---------------- HELPERS ---------------- */
 
@@ -1463,8 +1491,8 @@ function renderNotificaciones(){
 }
 
 /* Genera el link de WhatsApp con mensaje prearmado hacia la dueña */
-function linkWhatsAppDueña(mensaje){
-  return `https://wa.me/${config.whatsappDueña}?text=${encodeURIComponent(mensaje)}`;
+function linkWhatsAppDueña(mensaje, numero=null){
+  return `https://wa.me/${numero || config.whatsappDueña}?text=${encodeURIComponent(mensaje)}`;
 }
 
 /* ================================================================
@@ -1505,6 +1533,7 @@ async function inicializarFirestore(){
     await sembrarColeccionSiEstaVacia(COL.alumnos, SEED_alumnos);
     await sembrarColeccionSiEstaVacia(COL.reservasCumple, SEED_reservasCumple);
     await sembrarColeccionSiEstaVacia(COL.productos, SEED_productos);
+    await sembrarColeccionSiEstaVacia(COL.modalidadesCumple, SEED_modalidadesCumple);
   } catch(error){
     console.error('Error al sembrar datos iniciales en Firestore:', error);
     mostrarToast('No se pudo inicializar la base de datos. Revisá la configuración de Firebase.', '⚠️');
@@ -1514,6 +1543,7 @@ async function inicializarFirestore(){
   escucharColeccion(COL.alumnos, (items) => { alumnos = items; });
   escucharColeccion(COL.reservasCumple, (items) => { reservasCumple = items; });
   escucharColeccion(COL.productos, (items) => { productos = items; });
+  escucharColeccion(COL.modalidadesCumple, (items) => { modalidadesCumple = items; });
 }
 
 /* ================================================================
@@ -1568,6 +1598,7 @@ function renderTodo(){
   renderFiltrosProductosAdmin();
   renderProductosAdmin();
   renderCalendario();
+  renderModalidadesCumpleAdmin();
 
   renderClienteFiltrosProductos();
   renderClienteProductos();
@@ -1575,6 +1606,7 @@ function renderTodo(){
   renderClienteTalleres();
   renderCalendarioCliente();
   renderCalendarioCumple();
+  renderModalidadesCumple();
 }
 
 /* ================================================================
@@ -1806,7 +1838,17 @@ function eventosDelMes(mes, anio, { soloTipo=null, incluirArchivados=false } = {
 
 function renderLeyendaCalendario(elId){
   document.getElementById(elId).innerHTML = Object.keys(tipoLabel).map(t => `
-    <div class="legend-item"><span class="legend-dot" style="background:${tipoColor[t]};"></span> ${tipoLabel[t]}s</div>
+    <div class="legend-item"><span class="legend-dot" style="background:${tipoColor[t]};"></span> ${tipoLabel[t]}</div>
+  `).join('');
+}
+
+/* Leyenda de sucursales: solo tiene sentido en el calendario admin,
+   donde conviven eventos de ambas sucursales mezclados */
+function renderLeyendaSucursales(elId){
+  const el = document.getElementById(elId);
+  if(!el) return;
+  el.innerHTML = config.sucursales.map(s => `
+    <div class="legend-item"><span class="legend-dot" style="background:var(--white); box-shadow:0 0 0 2px ${s.colorMarca};"></span> ${s.nombre.replace('Sucursal ','')}</div>
   `).join('');
 }
 
@@ -1824,12 +1866,20 @@ function construirCalendarioHTML(mes, anio, gridId, { clickable=false, soloTipo=
   for(let d=1; d<=diasEnMes; d++){
     const eventosDia = eventos[d] || [];
     const esHoy = esMesActual && hoy.getDate() === d;
-    const eventosHtml = eventosDia.slice(0,2).map(e =>
-      `<div class="cal-event" style="background:${tipoColor[e.tipo]};" title="${e.texto}">${e.texto}</div>`
-    ).join('');
+    const eventosHtml = eventosDia.slice(0,2).map(e => {
+      const suc = datosSucursal(e.ref.sucursal);
+      const colorSuc = suc ? suc.colorMarca : 'transparent';
+      const tituloConSucursal = suc ? `${e.texto} · ${suc.nombre.replace('Sucursal ','')}` : e.texto;
+      return `<div class="cal-event" style="background:${tipoColor[e.tipo]}; box-shadow:inset 0 0 0 2px ${colorSuc};" title="${tituloConSucursal}">${e.texto}</div>`;
+    }).join('');
     const masHtml = eventosDia.length > 2 ? `<div class="cal-more">+${eventosDia.length - 2} más</div>` : '';
     const dotsHtml = eventosDia.length > 0
-      ? `<div class="cal-event-dots">${eventosDia.map(e => `<span class="cal-event-dot" style="background:${tipoColor[e.tipo]};" title="${e.texto}"></span>`).join('')}</div>`
+      ? `<div class="cal-event-dots">${eventosDia.map(e => {
+          const suc = datosSucursal(e.ref.sucursal);
+          const colorSuc = suc ? suc.colorMarca : 'transparent';
+          const tituloConSucursal = suc ? `${e.texto} · ${suc.nombre.replace('Sucursal ','')}` : e.texto;
+          return `<span class="cal-event-dot" style="background:${tipoColor[e.tipo]}; box-shadow:0 0 0 2px ${colorSuc};" title="${tituloConSucursal}"></span>`;
+        }).join('')}</div>`
       : '';
     const clickAttr = (clickable && eventosDia.length > 0) ? `data-caldia="${d}" data-calmes="${mes}" data-calanio="${anio}"` : '';
     const clickClass = (clickable && eventosDia.length > 0) ? 'has-events' : '';
@@ -1846,7 +1896,16 @@ function construirCalendarioHTML(mes, anio, gridId, { clickable=false, soloTipo=
 
 function renderCalendario(){
   document.getElementById('calMonthLabel').textContent = `${nombresMeses[calMes]} ${calAnio}`;
-  construirCalendarioHTML(calMes, calAnio, 'calendarGrid', { incluirArchivados:true });
+  construirCalendarioHTML(calMes, calAnio, 'calendarGrid', { incluirArchivados:true, clickable:true });
+
+  document.querySelectorAll('#calendarGrid .cal-day.has-events').forEach(dayEl => {
+    dayEl.addEventListener('click', () => {
+      const dia = Number(dayEl.dataset.caldia);
+      const mes = Number(dayEl.dataset.calmes);
+      const anio = Number(dayEl.dataset.calanio);
+      modalEventosDelDiaAdmin(dia, mes, anio);
+    });
+  });
 }
 
 function renderCalendarioCliente(){
@@ -1935,6 +1994,49 @@ function modalEventosDelDia(dia, mes, anio){
   abrirModal(`
     <div class="modal-header"><h3>📅 ${fechaTexto}</h3><button class="modal-close">✕</button></div>
     <div class="modal-body">${itemsHtml || '<p>No hay talleres este día.</p>'}</div>
+    <div class="modal-footer"><button class="btn btn-secondary" data-action="cerrar-modal">Cerrar</button></div>
+  `);
+}
+
+/* Igual que modalEventosDelDia, pero para el admin: muestra talleres
+   y festejos juntos (incluidos archivados), con acciones de gestión. */
+function modalEventosDelDiaAdmin(dia, mes, anio){
+  const eventos = eventosDelMes(mes, anio, { incluirArchivados:true })[dia] || [];
+  const fechaTexto = `${dia} de ${nombresMeses[mes]}`;
+
+  const itemsHtml = eventos.map(e => {
+    if(e.tipo === 'taller'){
+      const t = e.ref;
+      const idx = talleres.indexOf(t);
+      const suc = datosSucursal(t.sucursal);
+      return `
+        <div class="mini-item" style="cursor:pointer;" data-action="editar-taller-desde-cal" data-index="${idx}">
+          <div class="mini-thumb" style="background:${t.color};">${t.imagen ? `<img src="${t.imagen}" alt="">` : t.emoji}</div>
+          <div>
+            <div class="mi-title">${t.nombre}</div>
+            <div class="mi-sub">${t.hora} hs · Prof. ${t.profesor} ${suc ? `· <span style="color:${suc.colorMarca}; font-weight:600;">${suc.nombre.replace('Sucursal ','')}</span>` : ''}</div>
+          </div>
+          <div class="mi-right"><span class="badge ${badgeClaseEstado(estadoCuposTaller(t))}">${estadoCuposTaller(t)}</span></div>
+        </div>`;
+    } else {
+      const r = e.ref;
+      const idx = reservasCumple.indexOf(r);
+      const suc = datosSucursal(r.sucursal);
+      return `
+        <div class="mini-item" style="cursor:pointer;" data-action="ver-reserva-cumple-desde-cal" data-index="${idx}">
+          <div class="mini-thumb" style="background:linear-gradient(135deg,#F6DEE3,#F1C9D2);">🎂</div>
+          <div>
+            <div class="mi-title">${r.modalidad}</div>
+            <div class="mi-sub">${r.cliente} ${suc ? `· <span style="color:${suc.colorMarca}; font-weight:600;">${suc.nombre.replace('Sucursal ','')}</span>` : ''}</div>
+          </div>
+          <div class="mi-right"><span class="badge ${badgeClaseEstado(r.estado)}">${r.estado}</span></div>
+        </div>`;
+    }
+  }).join('');
+
+  abrirModal(`
+    <div class="modal-header"><h3>📅 ${fechaTexto}</h3><button class="modal-close">✕</button></div>
+    <div class="modal-body">${itemsHtml || '<p>No hay talleres ni festejos este día.</p>'}</div>
     <div class="modal-footer"><button class="btn btn-secondary" data-action="cerrar-modal">Cerrar</button></div>
   `);
 }
@@ -2264,6 +2366,111 @@ function modalNuevoProducto(){
   });
 }
 
+/* ---------------- Modales: gestión ADMIN de modalidades de cumpleaños ---------------- */
+
+const coloresModalidad = [
+  { nombre:"Rosa", valor:"linear-gradient(135deg,#F6DEE3,#F1C9D2)" },
+  { nombre:"Durazno", valor:"linear-gradient(135deg,#E3D2C4,#C9A488)" },
+  { nombre:"Crema", valor:"linear-gradient(135deg,#F3E4CB,#E9CE9E)" },
+];
+
+function opcionesColorModalidadHTML(seleccionado){
+  return coloresModalidad.map(c => `<option value="${c.valor}" ${c.valor === seleccionado ? 'selected' : ''}>${c.nombre}</option>`).join('');
+}
+
+function formModalidadHTML(idPrefix, m={}){
+  return `
+    <div class="form-group"><label>Nombre de la modalidad</label><input type="text" id="${idPrefix}-nombre" value="${m.nombre || ''}" placeholder="Ej: Piñata infantil"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Emoji</label><input type="text" id="${idPrefix}-emoji" value="${m.emoji || '🎉'}" maxlength="2"></div>
+      <div class="form-group"><label>Color de fondo</label><select id="${idPrefix}-color">${opcionesColorModalidadHTML(m.color)}</select></div>
+    </div>
+    <div class="form-group"><label>Descripción</label><textarea id="${idPrefix}-descripcion" rows="2" placeholder="Breve descripción de en qué consiste">${m.descripcion || ''}</textarea></div>
+    <div class="form-group"><label>Precio (texto libre)</label><input type="text" id="${idPrefix}-precio" value="${m.precioDesde || ''}" placeholder="Ej: $16.000 por persona"></div>
+    <div class="form-group">
+      <label>Datos clave (uno por línea)</label>
+      <textarea id="${idPrefix}-facts" rows="3" placeholder="⏱️ Duración aprox. 2 hs&#10;👥 Mínimo 6 personas">${(m.facts || []).join('\n')}</textarea>
+      <p class="form-hint">Cada línea aparece como un dato con ícono. Podés usar emojis al principio.</p>
+    </div>
+    <div class="form-group">
+      <label>Qué incluye (separado por comas)</label>
+      <input type="text" id="${idPrefix}-incluye" value="${(m.incluye || []).join(', ')}" placeholder="Cookies, Budines, Torta opcional">
+    </div>
+  `;
+}
+
+function leerFormModalidad(idPrefix){
+  return {
+    nombre: document.getElementById(`${idPrefix}-nombre`).value.trim() || "Modalidad sin nombre",
+    emoji: document.getElementById(`${idPrefix}-emoji`).value.trim() || "🎉",
+    color: document.getElementById(`${idPrefix}-color`).value,
+    descripcion: document.getElementById(`${idPrefix}-descripcion`).value.trim(),
+    precioDesde: document.getElementById(`${idPrefix}-precio`).value.trim() || "Consultar",
+    facts: document.getElementById(`${idPrefix}-facts`).value.split('\n').map(f => f.trim()).filter(Boolean),
+    incluye: document.getElementById(`${idPrefix}-incluye`).value.split(',').map(i => i.trim()).filter(Boolean),
+  };
+}
+
+function modalNuevaModalidadCumple(){
+  abrirModal(`
+    <div class="modal-header"><h3>🎉 Nueva modalidad de festejo</h3><button class="modal-close">✕</button></div>
+    <div class="modal-body">${formModalidadHTML('nm')}</div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-action="cerrar-modal">Cancelar</button>
+      <button class="btn btn-primary" data-action="guardar-nueva-modalidad">Crear modalidad</button>
+    </div>
+  `);
+  modalContent.querySelector('[data-action="guardar-nueva-modalidad"]').addEventListener('click', async () => {
+    const datos = leerFormModalidad('nm');
+    try{
+      await addDoc(collection(db, COL.modalidadesCumple), datos);
+      cerrarModal();
+      mostrarToast('Modalidad creada correctamente', '🎉');
+    } catch(error){
+      console.error('Error al crear modalidad:', error);
+      mostrarToast('No se pudo guardar la modalidad. Intentá de nuevo.', '⚠️');
+    }
+  });
+}
+
+function modalEditarModalidadCumple(index){
+  const m = modalidadesCumple[index];
+  abrirModal(`
+    <div class="modal-header"><h3>✏️ Editar modalidad</h3><button class="modal-close">✕</button></div>
+    <div class="modal-body">${formModalidadHTML('em', m)}</div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-action="eliminar-modalidad-cumple" data-index="${index}" style="color:var(--danger);">🗑️ Eliminar</button>
+      <button class="btn btn-secondary" data-action="cerrar-modal">Cancelar</button>
+      <button class="btn btn-primary" data-action="guardar-edicion-modalidad" data-index="${index}">Guardar cambios</button>
+    </div>
+  `);
+  modalContent.querySelector('[data-action="guardar-edicion-modalidad"]').addEventListener('click', async () => {
+    const datos = leerFormModalidad('em');
+    try{
+      await updateDoc(doc(db, COL.modalidadesCumple, m._id), datos);
+      cerrarModal();
+      mostrarToast('Modalidad actualizada', '✓');
+    } catch(error){
+      console.error('Error al actualizar modalidad:', error);
+      mostrarToast('No se pudieron guardar los cambios. Intentá de nuevo.', '⚠️');
+    }
+  });
+  modalContent.querySelector('[data-action="eliminar-modalidad-cumple"]').addEventListener('click', async () => {
+    if(modalidadesCumple.length <= 1){
+      mostrarToast('Tiene que quedar al menos una modalidad disponible', '⚠️');
+      return;
+    }
+    try{
+      await deleteDoc(doc(db, COL.modalidadesCumple, m._id));
+      cerrarModal();
+      mostrarToast('Modalidad eliminada', '🗑️');
+    } catch(error){
+      console.error('Error al eliminar modalidad:', error);
+      mostrarToast('No se pudo eliminar la modalidad. Intentá de nuevo.', '⚠️');
+    }
+  });
+}
+
 function modalEditarProducto(index){
   const p = productos[index];
   abrirModal(`
@@ -2450,6 +2657,37 @@ function renderModalidadesCumple(){
       </div>
     </div>
   `).join('');
+
+  // Mantiene el select del formulario de reserva sincronizado con las
+  // modalidades reales (si el admin agrega o quita alguna, se refleja acá)
+  const select = document.getElementById('rc-modalidad');
+  if(select && modalidadesCumple.length){
+    const valorPrevio = select.value;
+    select.innerHTML = modalidadesCumple.map(m => `<option value="${m.nombre}">${m.nombre}</option>`).join('');
+    if(modalidadesCumple.some(m => m.nombre === valorPrevio)) select.value = valorPrevio;
+  }
+}
+
+/* Igual que renderModalidadesCumple, pero para el admin: agrega
+   botones de editar/eliminar en cada tarjeta */
+function renderModalidadesCumpleAdmin(){
+  const grid = document.getElementById('modalidadesAdminGrid');
+  if(!grid) return;
+  grid.innerHTML = modalidadesCumple.map((m, i) => `
+    <div class="card modalidad-card">
+      <div class="modalidad-img" style="background:${m.color};">${m.emoji}</div>
+      <div class="modalidad-body">
+        <h3>${m.nombre}</h3>
+        <p>${m.descripcion}</p>
+        <div class="modalidad-facts">${m.facts.map(f => `<span>${f}</span>`).join('')}</div>
+        <div class="modalidad-includes">${m.incluye.map(inc => `<span class="include-pill">${inc}</span>`).join('')}</div>
+        <div class="modalidad-price">${m.precioDesde}</div>
+        <div class="admin-card-actions">
+          <button class="btn btn-secondary btn-sm" data-action="editar-modalidad-cumple" data-index="${i}">✏️ Editar</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
 }
 
 /* ---------------- Navegación cliente ---------------- */
@@ -2491,6 +2729,17 @@ document.querySelectorAll('#talleresAdminSubtabs .subtab').forEach(tab => {
     const target = tab.dataset.tatab;
     document.getElementById('tatab-activos').style.display = target === 'activos' ? 'block' : 'none';
     document.getElementById('tatab-archivados').style.display = target === 'archivados' ? 'block' : 'none';
+  });
+});
+
+/* Sub-tabs admin: Cumpleaños Reservas / Modalidades */
+document.querySelectorAll('#cumpleAdminSubtabs .subtab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('#cumpleAdminSubtabs .subtab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const target = tab.dataset.catab;
+    document.getElementById('catab-reservas').style.display = target === 'reservas' ? 'block' : 'none';
+    document.getElementById('catab-modalidades').style.display = target === 'modalidades' ? 'block' : 'none';
   });
 });
 
@@ -2584,6 +2833,7 @@ async function confirmarReservaTaller(index, nombre, telefono){
   agregarNotificacion('👩‍🍳', `<strong>${nombre}</strong> se anotó a "${t.nombre}"`);
 
   const mensajeWsp = `🎉 Nueva inscripción a taller\n\nTaller: ${t.nombre}\nFecha: ${formatoFechaLarga(t.fecha)} ${t.hora}hs\nSucursal: ${t.sucursal}\nAlumno/a: ${nombre}\nTeléfono: ${telefono}\nProfesor/a: ${t.profesor}\nSeña a transferir: ${formatoMoneda(señaMonto)}${alias ? ` (alias: ${alias})` : ''}\nEstado: pendiente de confirmar que se hizo la transferencia`;
+  const whatsappSucursal = whatsappDeSucursal(t.sucursal);
 
   abrirModal(`
     <div class="modal-header"><h3>✅ ¡Reserva registrada!</h3><button class="modal-close">✕</button></div>
@@ -2595,7 +2845,7 @@ async function confirmarReservaTaller(index, nombre, telefono){
       <p>Ahora hacé la transferencia de la seña ${alias ? `al alias <strong style="color:var(--choc);">${alias}</strong>` : 'que te indicó el profesor'} y avisale a Dulces Caprichos con el comprobante:</p>
     </div>
     <div class="modal-footer" style="flex-direction:column; align-items:stretch;">
-      <a class="btn whatsapp-btn" href="${linkWhatsAppDueña(mensajeWsp)}" target="_blank" rel="noopener">💬 Avisar por WhatsApp</a>
+      <a class="btn whatsapp-btn" href="${linkWhatsAppDueña(mensajeWsp, whatsappSucursal)}" target="_blank" rel="noopener">💬 Avisar por WhatsApp</a>
       <button class="btn btn-secondary" data-action="cerrar-modal" style="justify-content:center;">Cerrar</button>
     </div>
   `);
@@ -2665,6 +2915,7 @@ async function confirmarReservaCumple(datos){
   agregarNotificacion('🎂', `<strong>${datos.nombre}</strong> reservó "${datos.modalidad}" para el ${formatoFechaLarga(datos.fecha)}`);
 
   const mensajeWsp = `🎂 Nueva reserva de festejo\n\nModalidad: ${datos.modalidad}\nFecha: ${formatoFechaLarga(datos.fecha)}\nSucursal: ${datos.sucursal}\nCliente: ${datos.nombre}\nTeléfono: ${datos.telefono}\nInvitados: ${datos.invitados}\nComentarios: ${datos.comentarios || '—'}\nSeña: ${formatoMoneda(config.señaCumple)}\nEstado: pendiente de confirmar que se hizo la transferencia`;
+  const whatsappSucursal = whatsappDeSucursal(datos.sucursal);
 
   abrirModal(`
     <div class="modal-header"><h3>✅ ¡Reserva registrada!</h3><button class="modal-close">✕</button></div>
@@ -2676,7 +2927,7 @@ async function confirmarReservaCumple(datos){
       <p>Ahora hacé la transferencia de la seña y avisale a Dulces Caprichos con el comprobante:</p>
     </div>
     <div class="modal-footer" style="flex-direction:column; align-items:stretch;">
-      <a class="btn whatsapp-btn" href="${linkWhatsAppDueña(mensajeWsp)}" target="_blank" rel="noopener">💬 Avisar por WhatsApp</a>
+      <a class="btn whatsapp-btn" href="${linkWhatsAppDueña(mensajeWsp, whatsappSucursal)}" target="_blank" rel="noopener">💬 Avisar por WhatsApp</a>
       <button class="btn btn-secondary" data-action="cerrar-modal" style="justify-content:center;">Cerrar</button>
     </div>
   `);
@@ -2761,6 +3012,11 @@ document.addEventListener('click', async (e) => {
     // Admin: catálogo
     case 'new-producto': modalNuevoProducto(); break;
     case 'editar-producto': modalEditarProducto(Number(index)); break;
+    case 'editar-taller-desde-cal': cerrarModal(); setTimeout(() => modalEditarTaller(Number(index)), 200); break;
+    case 'ver-reserva-cumple-desde-cal': cerrarModal(); setTimeout(() => modalVerReservaCumple(Number(index)), 200); break;
+    // Admin: modalidades de cumpleaños
+    case 'new-modalidad-cumple': modalNuevaModalidadCumple(); break;
+    case 'editar-modalidad-cumple': modalEditarModalidadCumple(Number(index)); break;
     // Admin: config
     case 'save-config': mostrarToast('Datos del negocio actualizados', '⚙️'); break;
     // Cliente: talleres
@@ -2868,6 +3124,7 @@ document.getElementById('exitAdminBtn').addEventListener('click', async () => {
 async function init(){
   // Elementos que no dependen de datos de Firestore se pueden pintar ya
   renderLeyendaCalendario('calLegend');
+  renderLeyendaSucursales('calLegendSucursales');
   renderModalidadesCumple();
   renderNotificaciones();
 

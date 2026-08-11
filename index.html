@@ -409,6 +409,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .aforo-item{ display:flex; flex-direction:column; gap:2px; }
 .aforo-item strong{ font-size:13px; color:var(--choc); }
 .aforo-item span{ font-size:12.5px; color:var(--brown); }
+.aforo-horario{
+  font-size:12.5px; color:var(--choc-soft); margin-top:14px; padding-top:14px;
+  border-top:1px dashed rgba(74,52,40,0.12); font-weight:500;
+}
 
 .galeria-carrusel-bloque{ margin-bottom:26px; }
 .galeria-carrusel-titulo{ font-size:13px; font-weight:700; color:var(--choc); margin-bottom:10px; }
@@ -935,6 +939,7 @@ tbody tr:last-child td{ border-bottom:none; }
           <div class="aforo-item"><strong>Sucursal Santa Fe</strong><span>8 a 10 personas</span></div>
           <div class="aforo-item"><strong>Sucursal 25 de Mayo</strong><span>Hasta 12 personas</span></div>
         </div>
+        <p class="aforo-horario">🕗 Atendemos de lunes a sábado, de 8 a 20 hs. Los domingos permanecemos cerrados.</p>
       </div>
 
       <div class="section-heading">
@@ -2218,6 +2223,14 @@ function chequearDisponibilidadFecha(){
   const selectHorario = document.getElementById('rc-horario');
   const sucursal = document.getElementById('rc-sucursal')?.value || null;
   if(!inputFecha.value || !sucursal){ aviso.textContent = ''; selectHorario.innerHTML = ''; return; }
+
+  const fecha = new Date(inputFecha.value + 'T00:00:00');
+  if(fecha.getDay() === 0){ // domingo
+    aviso.textContent = '⚠️ Los domingos no atendemos. Elegí un día de lunes a sábado.';
+    aviso.style.color = 'var(--danger)';
+    selectHorario.innerHTML = '<option value="">Cerrado los domingos</option>';
+    return;
+  }
 
   const disponibles = horariosEventoDisponibles(inputFecha.value, sucursal);
   if(!disponibles.length){
@@ -3625,6 +3638,11 @@ function manejarReservaCumpleForm(e){
 
   if(!nombre || !telefono || !fecha || !horaInicio || !participan || (ninos + adultos) < 1){
     mostrarToast('Completá los campos obligatorios para continuar', '⚠️');
+    return;
+  }
+
+  if(new Date(fecha + 'T00:00:00').getDay() === 0){
+    mostrarToast('Los domingos no atendemos. Elegí un día de lunes a sábado.', '⚠️');
     return;
   }
 

@@ -550,6 +550,62 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .reserva-estado .re-icon{ font-size:20px; }
 .reserva-estado .re-text strong{ display:block; font-size:13px; color:var(--choc); }
 .reserva-estado .re-text span{ font-size:11.5px; }
+
+/* ---------- Aviso de paso obligatorio pendiente (WhatsApp) ---------- */
+.paso-pendiente-alerta{
+  background:linear-gradient(135deg, #FFF3CD, #FFE8A3);
+  border-left:4px solid var(--gold);
+  padding:14px 16px; border-radius:12px; margin-bottom:18px;
+}
+.paso-pendiente-alerta strong{ display:block; font-size:14px; color:#7A5B00; margin-bottom:4px; }
+.paso-pendiente-alerta span{ font-size:12.5px; color:#8A6D1F; line-height:1.5; }
+
+.pasos-reserva{ display:flex; flex-direction:column; gap:12px; }
+.paso-reserva{
+  display:flex; gap:12px; align-items:flex-start;
+  padding:14px; border-radius:12px; background:var(--peach);
+}
+.paso-reserva.destacado{
+  background:var(--sage-bg); box-shadow:inset 0 0 0 2px rgba(37,211,102,0.35);
+}
+.paso-num{
+  flex-shrink:0; width:24px; height:24px; border-radius:50%;
+  background:var(--choc); color:var(--white); font-size:12px; font-weight:700;
+  display:flex; align-items:center; justify-content:center;
+}
+.paso-reserva.destacado .paso-num{ background:#1DA851; }
+.paso-reserva strong{ display:block; font-size:13px; color:var(--choc); margin-bottom:3px; }
+.paso-reserva span{ font-size:12px; color:var(--brown); line-height:1.5; }
+
+.promo-destacada{
+  background:linear-gradient(135deg, #FDE8F0, #F9D3E2);
+  border-left:4px solid var(--pink-deep);
+  padding:14px 16px; border-radius:12px; margin-bottom:16px;
+}
+.promo-destacada strong{ display:block; font-size:13.5px; color:var(--pink-deep); margin-bottom:3px; }
+.promo-destacada span{ font-size:12px; color:var(--choc-soft); line-height:1.5; }
+.promo-banner{ margin-bottom:24px; }
+.promo-aviso{
+  font-size:12px !important; color:var(--pink-deep) !important;
+  font-weight:600; margin-top:6px !important;
+}
+
+.politica-cancelacion{
+  font-size:11.5px; color:var(--brown); line-height:1.5;
+  margin-top:16px; padding-top:14px; border-top:1px dashed rgba(74,52,40,0.15);
+}
+
+.btn-pulsante{ animation:pulsoBoton 2s ease-in-out infinite; }
+@keyframes pulsoBoton{
+  0%,100%{ transform:scale(1); box-shadow:0 0 0 0 rgba(37,211,102,0.5); }
+  50%{ transform:scale(1.02); box-shadow:0 0 0 8px rgba(37,211,102,0); }
+}
+.btn-texto-suave{
+  background:transparent; border:none; color:var(--brown-light);
+  font-size:12px; font-weight:500; justify-content:center; padding:8px;
+}
+.btn-texto-suave:hover{ color:var(--brown); }
+
 .whatsapp-btn{
   width:100%; justify-content:center; margin-top:8px;
   background:linear-gradient(135deg, #25D366, #1DA851); color:var(--white);
@@ -880,10 +936,10 @@ tbody tr:last-child td{ border-bottom:none; }
     <section class="cview" id="cview-catalogo">
       <div class="client-hero">
         <h2>Nuestro catálogo</h2>
-        <p>Tortas, dulces y especialidades hechas a mano. Esta es una guía de referencia — para pedidos puntuales, escribinos por WhatsApp.</p>
+        <p>Tortas, dulces y especialidades que elaboramos a diario. Encontralas en nuestras dos sucursales, sin necesidad de encargar.</p>
       </div>
 
-      <div class="catalogo-note">💬 Los precios son orientativos. Confirmá disponibilidad antes de tu visita.</div>
+      <div class="catalogo-note">💡 Para tortas personalizadas o pedidos de gran cantidad, coordinalos con al menos 48 hs de anticipación.</div>
 
       <div class="descuentos-grid" id="clienteDescuentosGrid"></div>
 
@@ -932,6 +988,8 @@ tbody tr:last-child td{ border-bottom:none; }
       </div>
 
       <div class="modalidad-grid" id="modalidadesGrid"></div>
+
+      <div id="promoCumpleWrap"></div>
 
       <div class="card aforo-card">
         <h4>📍 Capacidad de cada espacio</h4>
@@ -1009,6 +1067,7 @@ tbody tr:last-child td{ border-bottom:none; }
           <div class="seña-box" id="rc-seña-preview">
             <p id="rc-seña-texto">Seña estimada:</p>
             <div class="seña-monto" id="rc-seña-monto">—</div>
+            <p class="promo-aviso" id="rc-promo-aviso" style="display:none;"></p>
             <p>El resto se abona el día del evento</p>
           </div>
 
@@ -1351,26 +1410,37 @@ tbody tr:last-child td{ border-bottom:none; }
         <div class="config-grid">
           <div class="card" style="padding:24px;">
             <h4 style="font-size:15px; margin-bottom:16px;">🏪 Datos generales</h4>
-            <div class="form-group"><label>Nombre del negocio</label><input type="text" value="Dulces Caprichos"></div>
-            <div class="form-group"><label>Instagram</label><input type="text" value="@dulcescaprichos_mdp"></div>
-            <div class="form-group"><label>WhatsApp de consultas generales</label><input type="tel" id="cfg-whatsapp-dueña" value="5492236002901"></div>
-            <p class="form-hint" style="margin-bottom:16px;">Es el que aparece en el pie de página del sitio. Las reservas de talleres y cumpleaños usan el WhatsApp de la sucursal correspondiente (ver al lado).</p>
-            <button class="btn btn-primary" data-action="save-config">Guardar cambios</button>
+            <div class="form-group"><label>Nombre del negocio</label><input type="text" id="cfg-nombre-negocio"></div>
+            <div class="form-group"><label>Instagram</label><input type="text" id="cfg-instagram"></div>
+            <div class="form-group"><label>WhatsApp de consultas generales</label><input type="tel" id="cfg-whatsapp-dueña"></div>
+            <p class="form-hint">Es el que aparece en el pie de página del sitio. Las reservas de talleres y eventos usan el WhatsApp de la sucursal correspondiente (ver al lado).</p>
+
+            <h4 style="font-size:15px; margin:22px 0 16px;">💳 Seña de eventos</h4>
+            <div class="form-group"><label>Monto por persona</label><input type="number" id="cfg-seña-persona"></div>
+            <p class="form-hint">Se cobra por cada persona que participa de la actividad. La seña de cada taller se configura al crearlo o editarlo, ya que puede variar según el profesor.</p>
+
+            <h4 style="font-size:15px; margin:22px 0 16px;">📄 Política de cancelación</h4>
+            <div class="form-group">
+              <label>Texto que ve el cliente al reservar</label>
+              <textarea id="cfg-politica-cancelacion" rows="3" placeholder="Ej: La seña no es reembolsable, pero podés reprogramar avisando con 48 hs de anticipación."></textarea>
+            </div>
+            <p class="form-hint">Aparece en el paso de confirmación de talleres y eventos.</p>
           </div>
 
           <div class="card" style="padding:24px;">
             <h4 style="font-size:15px; margin-bottom:16px;">📍 Sucursales</h4>
-            <div class="form-group"><label>Sucursal 1 — Nombre</label><input type="text" value="Sucursal Santa Fe"></div>
-            <div class="form-group"><label>Sucursal 1 — Dirección</label><input type="text" value="Santa Fe 3097, esq. Avellaneda"></div>
-            <div class="form-group"><label>Sucursal 1 — WhatsApp</label><input type="tel" value="542235969835"></div>
-            <div class="form-group" style="margin-top:16px;"><label>Sucursal 2 — Nombre</label><input type="text" value="Sucursal 25 de Mayo"></div>
-            <div class="form-group"><label>Sucursal 2 — Dirección</label><input type="text" value="25 de Mayo 2954"></div>
-            <div class="form-group"><label>Sucursal 2 — WhatsApp</label><input type="tel" value="5492236965567"></div>
-            <p class="form-hint">Las reservas de talleres y cumpleaños de cada sucursal le avisan a este número.</p>
+            <div class="form-group"><label>Sucursal 1 — Nombre</label><input type="text" id="cfg-suc1-nombre"></div>
+            <div class="form-group"><label>Sucursal 1 — Dirección</label><input type="text" id="cfg-suc1-direccion"></div>
+            <div class="form-group"><label>Sucursal 1 — WhatsApp</label><input type="tel" id="cfg-suc1-whatsapp"></div>
+            <div class="form-group"><label>Sucursal 1 — Capacidad</label><input type="text" id="cfg-suc1-aforo" placeholder="8 a 10 personas"></div>
+            <div class="form-group" style="margin-top:16px;"><label>Sucursal 2 — Nombre</label><input type="text" id="cfg-suc2-nombre"></div>
+            <div class="form-group"><label>Sucursal 2 — Dirección</label><input type="text" id="cfg-suc2-direccion"></div>
+            <div class="form-group"><label>Sucursal 2 — WhatsApp</label><input type="tel" id="cfg-suc2-whatsapp"></div>
+            <div class="form-group"><label>Sucursal 2 — Capacidad</label><input type="text" id="cfg-suc2-aforo" placeholder="Hasta 12 personas"></div>
+            <p class="form-hint">Las reservas de talleres y eventos de cada sucursal le avisan a su número.</p>
 
-            <h4 style="font-size:15px; margin:22px 0 16px;">💳 Seña de eventos</h4>
-            <div class="form-group"><label>Monto por persona</label><input type="text" value="$5.000"></div>
-            <p class="form-hint">Se calcula por cada persona que participa de la actividad. La seña de cada taller se configura individualmente al crearlo o editarlo, ya que puede variar según el profesor. El cliente transfiere directo al alias del profesor correspondiente — el cobro es manual, sin pasarela de pago integrada.</p>
+            <button class="btn btn-primary" data-action="save-config" style="width:100%; justify-content:center; margin-top:20px;">💾 Guardar todos los cambios</button>
+            <p class="form-hint" id="cfg-estado-guardado" style="text-align:center; margin-top:8px;"></p>
           </div>
 
           <div class="card" style="padding:24px;">
@@ -1406,7 +1476,7 @@ tbody tr:last-child td{ border-bottom:none; }
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore, collection, doc, onSnapshot, getDocs, getDoc,
+  getFirestore, collection, doc, onSnapshot, getDocs, getDoc, runTransaction,
   addDoc, updateDoc, deleteDoc, setDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
@@ -1440,14 +1510,44 @@ const COL = {
 
 /* ---------------- CONFIGURACIÓN DEL NEGOCIO ---------------- */
 
-const config = {
+/* Configuración del negocio. Estos son los valores por defecto: si hay
+   una configuración guardada en Firestore, se sobrescriben al arrancar.
+   Es 'let' (y no 'const') justamente para poder reemplazarla con lo que
+   la dueña guarde desde el panel de administración. */
+let config = {
+  nombreNegocio: "Dulces Caprichos",
+  instagram: "@dulcescaprichos_mdp",
   whatsappDueña: "5492236002901", // WhatsApp de consultas generales (footer, no depende de sucursal)
   señaPersona: 5000, // seña por persona que participa de la actividad (igual para todos los eventos)
+  politicaCancelacion: "La seña no es reembolsable si algún participante no asiste. Para reprogramar, avisanos con anticipación por WhatsApp.",
+  // Promo vigente: si participan al menos X personas, una no paga la
+  // actividad (pensada para el cumpleañero). Tiene fecha de vencimiento
+  // para que deje de aplicarse sola sin tener que acordarse de sacarla.
+  promoCumple: {
+    activa: true,
+    minimoPersonas: 8,
+    vigenteHasta: "2026-09-30",
+    texto: "Si son 8 o más, ¡el cumpleañero no paga la actividad!",
+  },
   sucursales: [
     { nombre:"Sucursal Santa Fe", direccion:"Santa Fe 3097, esq. Avellaneda", whatsapp:"542235969835", colorMarca:"#7B93B0", aforo:"8 a 10 personas" },
     { nombre:"Sucursal 25 de Mayo", direccion:"25 de Mayo 2954", whatsapp:"5492236965567", colorMarca:"#B4884A", aforo:"Hasta 12 personas" },
   ],
 };
+
+/* Evalúa si la promo de cumpleaños aplica para esa cantidad de
+   participantes, considerando también si sigue vigente por fecha.
+   Devuelve cuántas personas quedan exentas de pagar (0 si no aplica). */
+function personasBonificadasPorPromo(participan){
+  const promo = config.promoCumple;
+  if(!promo || !promo.activa) return 0;
+  if(promo.vigenteHasta){
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    const limite = new Date(promo.vigenteHasta + 'T23:59:59');
+    if(hoy > limite) return 0;
+  }
+  return participan >= (promo.minimoPersonas || 8) ? 1 : 0;
+}
 
 /* Busca los datos completos de una sucursal a partir de su nombre */
 function datosSucursal(nombreSucursal){
@@ -1690,8 +1790,6 @@ function linkWhatsAppDueña(mensaje, numero=null){
    necesaria para poder editarlo o borrarlo después.
    ================================================================ */
 
-let firestoreListo = false; // evita renders a medio cargar durante el arranque
-
 /* Siembra datos de ejemplo SOLO la primera vez que se usa el sistema.
    Antes este chequeo miraba si la colección estaba vacía — el problema
    es que si la dueña borra todo (por ejemplo, los datos de prueba),
@@ -1714,11 +1812,129 @@ function escucharColeccion(nombreColeccion, alActualizar){
   onSnapshot(collection(db, nombreColeccion), (snap) => {
     const items = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
     alActualizar(items);
-    if(firestoreListo) renderTodo();
+    // Antes esto sólo renderizaba si una bandera "firestoreListo" ya
+    // estaba activa. El problema: si los datos llegaban ANTES de que
+    // init() activara esa bandera (una carrera perfectamente posible),
+    // los datos quedaban en memoria pero nunca se pintaban, y la página
+    // se veía completamente vacía hasta recargar. Ahora se renderiza
+    // siempre que lleguen datos, sin depender de ese timing.
+    renderTodo();
   }, (error) => {
     console.error(`Error escuchando ${nombreColeccion}:`, error);
     mostrarToast(`No se pudo conectar con la base de datos (${nombreColeccion}). Revisá tu conexión.`, '⚠️');
   });
+}
+
+/* ================================================================
+   CONFIGURACIÓN DEL NEGOCIO — persistencia real en Firestore
+   ================================================================
+   Antes esta pantalla era pura decoración: los valores estaban escritos
+   fijos en el HTML y el botón "Guardar" sólo mostraba un cartel de éxito
+   sin guardar nada. La dueña podía cambiar un WhatsApp, ver el mensaje
+   verde, y perder reservas sin enterarse. Ahora se guarda de verdad. */
+
+async function cargarConfigDesdeFirestore(){
+  try{
+    const snap = await getDoc(doc(db, COL.metaSistema, 'configNegocio'));
+    if(snap.exists()){
+      const guardada = snap.data();
+      // Se fusiona con los valores por defecto para que, si en el futuro
+      // se agrega un campo nuevo al código, no quede vacío en los
+      // proyectos que ya tenían configuración guardada.
+      config = {
+        ...config,
+        ...guardada,
+        sucursales: (guardada.sucursales && guardada.sucursales.length)
+          ? guardada.sucursales.map((s, i) => ({ ...config.sucursales[i], ...s }))
+          : config.sucursales,
+      };
+    }
+  } catch(error){
+    console.error('Error al cargar la configuración guardada:', error);
+  }
+}
+
+function llenarFormularioConfig(){
+  const set = (id, valor) => { const el = document.getElementById(id); if(el) el.value = valor ?? ''; };
+  set('cfg-nombre-negocio', config.nombreNegocio);
+  set('cfg-instagram', config.instagram);
+  set('cfg-whatsapp-dueña', config.whatsappDueña);
+  set('cfg-seña-persona', config.señaPersona);
+  set('cfg-politica-cancelacion', config.politicaCancelacion);
+  const s1 = config.sucursales[0] || {};
+  const s2 = config.sucursales[1] || {};
+  set('cfg-suc1-nombre', s1.nombre);   set('cfg-suc1-direccion', s1.direccion);
+  set('cfg-suc1-whatsapp', s1.whatsapp); set('cfg-suc1-aforo', s1.aforo);
+  set('cfg-suc2-nombre', s2.nombre);   set('cfg-suc2-direccion', s2.direccion);
+  set('cfg-suc2-whatsapp', s2.whatsapp); set('cfg-suc2-aforo', s2.aforo);
+}
+
+async function guardarConfig(){
+  const get = (id) => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  const estadoEl = document.getElementById('cfg-estado-guardado');
+
+  const nueva = {
+    nombreNegocio: get('cfg-nombre-negocio') || config.nombreNegocio,
+    instagram: get('cfg-instagram') || config.instagram,
+    whatsappDueña: get('cfg-whatsapp-dueña').replace(/[^0-9]/g, '') || config.whatsappDueña,
+    señaPersona: Number(get('cfg-seña-persona')) || config.señaPersona,
+    politicaCancelacion: get('cfg-politica-cancelacion'),
+    sucursales: [
+      { ...config.sucursales[0],
+        nombre: get('cfg-suc1-nombre') || config.sucursales[0].nombre,
+        direccion: get('cfg-suc1-direccion'),
+        whatsapp: get('cfg-suc1-whatsapp').replace(/[^0-9]/g, ''),
+        aforo: get('cfg-suc1-aforo') },
+      { ...config.sucursales[1],
+        nombre: get('cfg-suc2-nombre') || config.sucursales[1].nombre,
+        direccion: get('cfg-suc2-direccion'),
+        whatsapp: get('cfg-suc2-whatsapp').replace(/[^0-9]/g, ''),
+        aforo: get('cfg-suc2-aforo') },
+    ],
+  };
+
+  try{
+    await setDoc(doc(db, COL.metaSistema, 'configNegocio'), nueva);
+    config = { ...config, ...nueva };
+    if(estadoEl){
+      estadoEl.textContent = `✅ Guardado a las ${new Date().toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'})}`;
+      estadoEl.style.color = 'var(--sage)';
+    }
+    mostrarToast('Configuración guardada correctamente', '⚙️');
+    renderTodo();
+    aplicarConfigAlSitio();
+  } catch(error){
+    console.error('Error al guardar la configuración:', error);
+    if(estadoEl){
+      estadoEl.textContent = '⚠️ No se pudo guardar. Revisá tu conexión e intentá de nuevo.';
+      estadoEl.style.color = 'var(--danger)';
+    }
+    mostrarToast('No se pudo guardar la configuración. Intentá de nuevo.', '⚠️');
+  }
+}
+
+/* Vuelca los datos de configuración en las partes del sitio público que
+   los muestran de forma fija (footer, capacidad de sucursales, etc.) */
+function aplicarConfigAlSitio(){
+  const linkWsp = document.getElementById('footerWhatsappLink');
+  if(linkWsp) linkWsp.href = `https://wa.me/${config.whatsappDueña}`;
+
+  const aforoGrid = document.querySelector('.aforo-grid');
+  if(aforoGrid){
+    aforoGrid.innerHTML = config.sucursales.map(s => `
+      <div class="aforo-item"><strong>${s.nombre}</strong><span>${s.aforo || '—'}</span></div>
+    `).join('');
+  }
+
+  // Cartel de la promo vigente en la sección de eventos
+  const promoWrap = document.getElementById('promoCumpleWrap');
+  if(promoWrap){
+    const promo = config.promoCumple;
+    const vigente = promo && promo.activa && personasBonificadasPorPromo(promo.minimoPersonas || 8) > 0;
+    promoWrap.innerHTML = vigente
+      ? `<div class="promo-destacada promo-banner">🎉 <strong>${promo.texto}</strong><span>Promo vigente hasta el ${formatoFechaLarga(promo.vigenteHasta)}. El descuento se aplica solo al reservar.</span></div>`
+      : '';
+  }
 }
 
 async function inicializarFirestore(){
@@ -1781,43 +1997,59 @@ async function limpiarVencidos(){
     }
   }
 
-  // Eliminar reservas de cumpleaños cuya fecha ya pasó
-  const cumplesVencidos = reservasCumple.filter(r => esFechaPasada(r.fecha));
+  // Archivar (NO borrar) las reservas de eventos ya pasadas. Antes se
+  // eliminaban, con lo cual la dueña perdía todo el historial de festejos
+  // — cuántos hizo, quién repitió, cuánto facturó. El dato se conserva,
+  // solo deja de aparecer en el listado de reservas activas.
+  const cumplesVencidos = reservasCumple.filter(r => esFechaPasada(r.fecha) && (r.estado || '') !== 'Archivado');
   for(const r of cumplesVencidos){
     try{
-      await deleteDoc(doc(db, COL.reservasCumple, r._id));
+      await updateDoc(doc(db, COL.reservasCumple, r._id), { estado: 'Archivado' });
     } catch(error){
-      console.error('Error al eliminar festejo vencido:', r.cliente, error);
+      console.error('Error al archivar festejo vencido:', r.cliente, error);
     }
   }
 
-  if(talleresVencidos.length || cumplesVencidos.length){
-    console.log(`Limpieza automática: ${talleresVencidos.length} taller(es) archivado(s), ${cumplesVencidos.length} festejo(s) vencido(s) eliminado(s).`);
+  // Archivar los inscriptos de talleres que ya pasaron, para que no se
+  // mezclen con los alumnos de talleres vigentes en el listado general.
+  const nombresTalleresVencidos = new Set(
+    talleres.filter(t => t.estado === 'archivado' || esFechaPasada(t.fecha)).map(t => t.nombre)
+  );
+  const alumnosVencidos = alumnos.filter(a => !a.archivado && nombresTalleresVencidos.has(a.taller));
+  for(const a of alumnosVencidos){
+    try{
+      await updateDoc(doc(db, COL.alumnos, a._id), { archivado: true });
+    } catch(error){
+      console.error('Error al archivar alumno de taller vencido:', a.nombre, error);
+    }
+  }
+
+  if(talleresVencidos.length || cumplesVencidos.length || alumnosVencidos.length){
+    console.log(`Limpieza automática: ${talleresVencidos.length} taller(es) archivado(s), ${cumplesVencidos.length} festejo(s) archivado(s), ${alumnosVencidos.length} inscripción(es) archivada(s).`);
   }
 }
 
 /* Re-renderiza todas las vistas (admin + cliente) cuando cambian los datos */
 function renderTodo(){
-  renderDashboard();
-  renderFiltrosSucursalAdmin();
-  renderTalleres();
-  renderCumpleanosAdmin();
-  renderFiltrosProductosAdmin();
-  renderProductosAdmin();
-  renderDescuentosAdmin();
-  renderCalendario();
-  renderModalidadesCumpleAdmin();
-  renderGaleriaLocalAdmin();
-
-  renderClienteFiltrosProductos();
-  renderDescuentosCliente();
-  renderClienteProductos();
-  renderClienteSucursalFiltros();
-  renderClienteTalleres();
-  renderCalendarioCliente();
-  renderCalendarioCumple();
-  renderModalidadesCumple();
-  renderGaleriaLocalCliente();
+  // Cada render se ejecuta de forma independiente: si uno falla (por
+  // ejemplo, porque un elemento del DOM todavía no existe), no debe
+  // impedir que se dibujen los demás — antes un solo error dejaba media
+  // página en blanco sin ninguna señal visible de lo que había pasado.
+  const renders = [
+    renderDashboard, renderFiltrosSucursalAdmin, renderTalleres, renderCumpleanosAdmin,
+    renderFiltrosProductosAdmin, renderProductosAdmin, renderDescuentosAdmin,
+    renderCalendario, renderModalidadesCumpleAdmin, renderGaleriaLocalAdmin,
+    renderClienteFiltrosProductos, renderDescuentosCliente, renderClienteProductos,
+    renderClienteSucursalFiltros, renderClienteTalleres, renderCalendarioCliente,
+    renderCalendarioCumple, renderModalidadesCumple, renderGaleriaLocalCliente,
+  ];
+  for(const render of renders){
+    try{
+      render();
+    } catch(error){
+      console.error(`Error al renderizar (${render.name}):`, error);
+    }
+  }
 }
 
 /* ================================================================
@@ -1937,10 +2169,14 @@ function renderTalleres(){
   }).join('') : '<p class="sub">Todavía no hay talleres archivados.</p>';
 
   const tbody = document.getElementById('tablaAlumnosBody');
-  tbody.innerHTML = alumnos.map((a, i) => {
+  const alumnosActivos = alumnos.filter(a => !a.archivado);
+  const alumnosArchivados = alumnos.filter(a => a.archivado);
+
+  const filaAlumno = (a) => {
+    const i = alumnos.indexOf(a);
     const tallerExiste = talleres.some(t => t.nombre === a.taller);
     return `
-    <tr>
+    <tr${a.archivado ? ' style="opacity:0.6;"' : ''}>
       <td class="cell-strong">${a.nombre}</td>
       <td>${a.taller}${tallerExiste ? '' : ' <span class="badge badge-danger" style="margin-left:6px;">taller eliminado</span>'}</td>
       <td>${a.contacto}</td>
@@ -1948,9 +2184,22 @@ function renderTalleres(){
         <span class="badge ${badgeClaseEstado(a.señaEstado)}" style="cursor:pointer;" data-action="toggle-seña-alumno" data-index="${i}">${a.señaEstado}</span>
       </td>
       <td><button class="btn btn-secondary btn-sm" data-action="eliminar-alumno" data-index="${i}">🗑️</button></td>
-    </tr>
-  `;
-  }).join('');
+    </tr>`;
+  };
+
+  let html = alumnosActivos.length
+    ? alumnosActivos.map(filaAlumno).join('')
+    : '<tr><td colspan="5" style="text-align:center; color:var(--brown-light); padding:18px;">No hay inscriptos en talleres vigentes.</td></tr>';
+
+  if(alumnosArchivados.length){
+    html += `
+      <tr><td colspan="5" style="padding-top:20px;">
+        <strong style="font-size:12.5px; color:var(--brown);">📁 Talleres ya dictados (${alumnosArchivados.length})</strong>
+      </td></tr>
+    ` + alumnosArchivados.map(filaAlumno).join('');
+  }
+
+  tbody.innerHTML = html;
 }
 
 /* ================================================================
@@ -1959,8 +2208,13 @@ function renderTalleres(){
 
 function renderCumpleanosAdmin(){
   const tbody = document.getElementById('tablaCumpleTbody');
-  tbody.innerHTML = reservasCumple.map((r, i) => `
-    <tr>
+  const vigentes = reservasCumple.filter(r => r.estado !== 'Archivado');
+  const archivadas = reservasCumple.filter(r => r.estado === 'Archivado');
+
+  const fila = (r) => {
+    const i = reservasCumple.indexOf(r);
+    return `
+    <tr${r.estado === 'Archivado' ? ' style="opacity:0.6;"' : ''}>
       <td class="cell-strong">${r.cliente}</td>
       <td>${r.modalidad}${r.variante ? `<br><span style="font-size:11px; color:var(--brown-light);">${r.variante}</span>` : ''}</td>
       <td>${formatoFechaLarga(r.fecha)}${r.horaInicio ? ` · ${r.horaInicio}hs` : ''}</td>
@@ -1974,8 +2228,22 @@ function renderCumpleanosAdmin(){
           <button class="btn btn-secondary btn-sm" data-action="eliminar-reserva-cumple" data-index="${i}">🗑️</button>
         </div>
       </td>
-    </tr>
-  `).join('');
+    </tr>`;
+  };
+
+  let html = vigentes.length
+    ? vigentes.map(fila).join('')
+    : '<tr><td colspan="8" style="text-align:center; color:var(--brown-light); padding:18px;">No hay eventos próximos reservados.</td></tr>';
+
+  if(archivadas.length){
+    html += `
+      <tr><td colspan="8" style="padding-top:20px;">
+        <strong style="font-size:12.5px; color:var(--brown);">📁 Eventos ya realizados (${archivadas.length})</strong>
+      </td></tr>
+    ` + archivadas.map(fila).join('');
+  }
+
+  tbody.innerHTML = html;
 }
 
 /* ================================================================
@@ -2388,15 +2656,43 @@ function inputImagenHTML(idPrefix, imagenActual){
 function conectarInputImagen(idPrefix){
   const fileInput = document.getElementById(`${idPrefix}-file`);
   const preview = document.getElementById(`${idPrefix}-preview`);
-  fileInput.addEventListener('change', () => {
+  fileInput.addEventListener('change', async () => {
     const file = fileInput.files[0];
     if(!file) return;
+    try{
+      const dataUri = await comprimirImagen(file);
+      preview.src = dataUri;
+      preview.classList.add('show');
+      preview.dataset.value = dataUri;
+    } catch(error){
+      console.error('Error al procesar la imagen:', error);
+      mostrarToast('No se pudo procesar esa imagen. Probá con otra.', '⚠️');
+    }
+  });
+}
+
+/* Comprime una imagen antes de guardarla. Las fotos de celular pesan
+   varios MB, y Firestore no admite documentos de más de 1 MB — sin esto
+   la subida falla SIEMPRE desde un teléfono. Redimensiona al ancho
+   máximo indicado y recomprime como JPEG, devolviendo el data URI. */
+function comprimirImagen(file, anchoMax = 900, calidad = 0.72){
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
-      preview.src = e.target.result;
-      preview.classList.add('show');
-      preview.dataset.value = e.target.result;
+      const img = new Image();
+      img.onload = () => {
+        const escala = Math.min(1, anchoMax / img.width);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * escala);
+        canvas.height = Math.round(img.height * escala);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', calidad));
+      };
+      img.onerror = () => reject(new Error('No se pudo procesar la imagen'));
+      img.src = e.target.result;
     };
+    reader.onerror = () => reject(new Error('No se pudo leer el archivo'));
     reader.readAsDataURL(file);
   });
 }
@@ -2404,6 +2700,8 @@ function conectarInputImagen(idPrefix){
 function opcionesSucursalHTML(seleccionada){
   return config.sucursales.map(s => `<option ${s.nombre === seleccionada ? 'selected' : ''}>${s.nombre}</option>`).join('');
 }
+
+
 
 /* Los eventos (talleres de yeso/totebags, etc.) solo se reservan en
    estos 3 horarios fijos, cada uno de 2 horas de duración. */
@@ -2447,6 +2745,7 @@ function horarioOcupadoEnSucursal(fechaISO, horaInicio, duracionHoras, sucursal,
 
   const eventoEnConflicto = reservasCumple.find(r =>
     r.estado !== 'Cancelado' &&
+    r.estado !== 'Archivado' &&
     r.sucursal === sucursal &&
     r.fecha === fechaISO &&
     rangosSeSuperponen(rangoNuevo, rangoConMargen(r.horaInicio || '11:00', DURACION_EVENTO_HORAS))
@@ -2778,15 +3077,17 @@ function galeriaHTML(idPrefix, fotos=[]){
 
 function conectarGaleria(idPrefix, fotosState){
   const fileInput = document.getElementById(`${idPrefix}-galeria-file`);
-  fileInput.addEventListener('change', () => {
-    Array.from(fileInput.files).forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        fotosState.push(e.target.result);
+  fileInput.addEventListener('change', async () => {
+    for(const file of Array.from(fileInput.files)){
+      try{
+        const dataUri = await comprimirImagen(file);
+        fotosState.push(dataUri);
         renderGaleriaGrid(idPrefix, fotosState);
-      };
-      reader.readAsDataURL(file);
-    });
+      } catch(error){
+        console.error('Error al procesar la imagen:', error);
+        mostrarToast('No se pudo procesar una de las imágenes.', '⚠️');
+      }
+    }
     fileInput.value = '';
   });
   renderGaleriaGrid(idPrefix, fotosState);
@@ -3399,19 +3700,16 @@ function renderGaleriaLocalAdmin(){
 Object.entries(SUFIJO_SUCURSAL).forEach(([sucursalNombre, sufijo]) => {
   const input = document.getElementById(`galeriaLocalAdminFile-${sufijo}`);
   if(!input) return;
-  input.addEventListener('change', () => {
-    Array.from(input.files).forEach(file => {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try{
-          await addDoc(collection(db, COL.galeriaLocal), { imagen: e.target.result, sucursal: sucursalNombre, descripcion: '' });
-        } catch(error){
-          console.error('Error al subir foto del local:', error);
-          mostrarToast('No se pudo subir la foto. Intentá de nuevo.', '⚠️');
-        }
-      };
-      reader.readAsDataURL(file);
-    });
+  input.addEventListener('change', async () => {
+    for(const file of Array.from(input.files)){
+      try{
+        const dataUri = await comprimirImagen(file);
+        await addDoc(collection(db, COL.galeriaLocal), { imagen: dataUri, sucursal: sucursalNombre, descripcion: '' });
+      } catch(error){
+        console.error('Error al subir foto del local:', error);
+        mostrarToast('No se pudo subir la foto. Intentá de nuevo.', '⚠️');
+      }
+    }
     input.value = '';
   });
 });
@@ -3495,9 +3793,12 @@ function modalDetalleTaller(index){
       <p>${t.descripcion}</p>
       <div class="modal-detail-row"><span>Profesor/a</span><span>${t.profesor}</span></div>
       <div class="modal-detail-row"><span>Fecha y hora</span><span>${formatoFechaLarga(t.fecha)} · ${t.hora} hs</span></div>
+      <div class="modal-detail-row"><span>Duración</span><span>${t.duracionHoras || 4} horas aprox.</span></div>
       <div class="modal-detail-row"><span>Sucursal</span><span>${t.sucursal}</span></div>
       <div class="modal-detail-row"><span>Cupos</span><span>${t.cupos - t.cuposOcupados} disponibles de ${t.cupos}</span></div>
       <div class="modal-detail-row"><span>Precio</span><span>${formatoMoneda(t.precio)}</span></div>
+      <div class="modal-detail-row"><span>Seña para reservar</span><span>${formatoMoneda(t.señaMonto || 0)}</span></div>
+      ${config.politicaCancelacion ? `<p class="politica-cancelacion">📄 ${config.politicaCancelacion}</p>` : ''}
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" data-action="cerrar-modal">Cerrar</button>
@@ -3555,13 +3856,35 @@ async function confirmarReservaTaller(index, nombre, telefono){
   const señaMonto = Number(t.señaMonto) || 0;
 
   try{
-    // La reserva queda registrada al instante, sin esperar a que se
-    // confirme el pago — así la dueña la ve apenas el cliente la hace.
-    if(t.cuposOcupados < t.cupos){
-      await updateDoc(doc(db, COL.talleres, t._id), { cuposOcupados: t.cuposOcupados + 1 });
-    }
-    await addDoc(collection(db, COL.alumnos), { nombre, taller:t.nombre, contacto:telefono, señaEstado:"Pendiente" });
+    // Se usa una transacción para que la comprobación de cupo y la
+    // inscripción ocurran de forma atómica. Antes, si dos personas se
+    // anotaban al mismo tiempo, ambas leían el mismo contador y se
+    // pisaban (contaba una sola); y si el taller ya estaba lleno, el
+    // alumno se guardaba igual aunque el contador no subiera.
+    await runTransaction(db, async (tx) => {
+      const tallerRef = doc(db, COL.talleres, t._id);
+      const snap = await tx.get(tallerRef);
+      if(!snap.exists()) throw new Error('TALLER_NO_EXISTE');
+
+      const datos = snap.data();
+      const ocupados = Number(datos.cuposOcupados) || 0;
+      const totales = Number(datos.cupos) || 0;
+      if(ocupados >= totales) throw new Error('SIN_CUPO');
+
+      tx.update(tallerRef, { cuposOcupados: ocupados + 1 });
+      tx.set(doc(collection(db, COL.alumnos)), {
+        nombre, taller: t.nombre, contacto: telefono, señaEstado: "Pendiente"
+      });
+    });
   } catch(error){
+    if(error.message === 'SIN_CUPO'){
+      mostrarToast('Justo se ocupó el último lugar de este taller. Probá con otro.', '⚠️');
+      return;
+    }
+    if(error.message === 'TALLER_NO_EXISTE'){
+      mostrarToast('Ese taller ya no está disponible.', '⚠️');
+      return;
+    }
     console.error('Error al confirmar inscripción:', error);
     mostrarToast('No se pudo confirmar la inscripción. Intentá de nuevo.', '⚠️');
     return;
@@ -3573,21 +3896,39 @@ async function confirmarReservaTaller(index, nombre, telefono){
   const whatsappSucursal = whatsappDeSucursal(t.sucursal);
 
   abrirModal(`
-    <div class="modal-header"><h3>✅ ¡Reserva registrada!</h3><button class="modal-close">✕</button></div>
+    <div class="modal-header"><h3>⚠️ Falta un paso</h3><button class="modal-close">✕</button></div>
     <div class="modal-body">
-      <div class="reserva-estado pendiente">
-        <span class="re-icon">⏳</span>
-        <div class="re-text"><strong>Pendiente de confirmar seña</strong><span>Tu lugar en "${t.nombre}" está guardado</span></div>
+      <div class="paso-pendiente-alerta">
+        <strong>Tu lugar todavía NO está confirmado</strong>
+        <span>Guardamos tus datos, pero la inscripción se completa recién cuando nos mandás el comprobante de la seña.</span>
       </div>
-      <p>Ahora hacé la transferencia de la seña ${alias ? `al alias <strong style="color:var(--choc);">${alias}</strong>` : 'que te indicó el profesor'} y avisale a Dulces Caprichos con el comprobante:</p>
+
+      <div class="pasos-reserva">
+        <div class="paso-reserva">
+          <span class="paso-num">1</span>
+          <div>
+            <strong>Transferí la seña de ${formatoMoneda(señaMonto)}</strong>
+            ${alias ? `<span>Al alias <strong style="color:var(--choc);">${alias}</strong> (${t.profesor})</span>` : '<span>Al alias que te indique el profesor</span>'}
+          </div>
+        </div>
+        <div class="paso-reserva destacado">
+          <span class="paso-num">2</span>
+          <div>
+            <strong>Mandanos el comprobante por WhatsApp</strong>
+            <span>Sin este paso la inscripción no queda registrada. El mensaje ya viene escrito, solo tenés que enviarlo y adjuntar el comprobante.</span>
+          </div>
+        </div>
+      </div>
+
+      ${config.politicaCancelacion ? `<p class="politica-cancelacion">📄 ${config.politicaCancelacion}</p>` : ''}
     </div>
-    <div class="modal-footer" style="flex-direction:column; align-items:stretch;">
-      <a class="btn whatsapp-btn" href="${linkWhatsAppDueña(mensajeWsp, whatsappSucursal)}" target="_blank" rel="noopener">💬 Avisar por WhatsApp</a>
-      <button class="btn btn-secondary" data-action="cerrar-modal" style="justify-content:center;">Cerrar</button>
+    <div class="modal-footer" style="flex-direction:column; align-items:stretch; gap:6px;">
+      <a class="btn whatsapp-btn btn-pulsante" href="${linkWhatsAppDueña(mensajeWsp, whatsappSucursal)}" target="_blank" rel="noopener">💬 Enviar comprobante por WhatsApp</a>
+      <button class="btn btn-texto-suave" data-action="cerrar-modal">Lo hago más tarde</button>
     </div>
   `);
 
-  mostrarToast('¡Reserva registrada! Falta confirmar la seña.', '🎉');
+  mostrarToast('¡Casi listo! Falta enviar el comprobante por WhatsApp.', '⚠️');
 }
 
 /* ---------------- Reserva de cumpleaños (con seña) ---------------- */
@@ -3610,11 +3951,28 @@ function actualizarVariantesFormularioReserva(){
 
 function recalcularSeñaFormulario(){
   const participan = Number(document.getElementById('rc-participan')?.value) || 0;
-  const monto = participan * config.señaPersona;
+  const bonificadas = personasBonificadasPorPromo(participan);
+  const pagan = Math.max(0, participan - bonificadas);
+  const monto = pagan * config.señaPersona;
+
   const montoEl = document.getElementById('rc-seña-monto');
   const textoEl = document.getElementById('rc-seña-texto');
+  const promoEl = document.getElementById('rc-promo-aviso');
+
   if(montoEl) montoEl.textContent = participan > 0 ? formatoMoneda(monto) : '—';
-  if(textoEl) textoEl.textContent = `Seña estimada (${formatoMoneda(config.señaPersona)} por persona que participa):`;
+  if(textoEl){
+    textoEl.textContent = bonificadas > 0
+      ? `Seña estimada (${formatoMoneda(config.señaPersona)} x ${pagan} personas, 1 bonificada):`
+      : `Seña estimada (${formatoMoneda(config.señaPersona)} por persona que participa):`;
+  }
+  if(promoEl){
+    if(bonificadas > 0){
+      promoEl.textContent = `🎉 ¡Promo aplicada! ${config.promoCumple.texto}`;
+      promoEl.style.display = 'block';
+    } else {
+      promoEl.style.display = 'none';
+    }
+  }
 }
 
 document.getElementById('rc-modalidad')?.addEventListener('change', actualizarVariantesFormularioReserva);
@@ -3653,7 +4011,9 @@ function manejarReservaCumpleForm(e){
     return;
   }
 
-  const señaTotal = participan * config.señaPersona;
+  const bonificadas = personasBonificadasPorPromo(participan);
+  const paganSeña = Math.max(0, participan - bonificadas);
+  const señaTotal = paganSeña * config.señaPersona;
 
   abrirModal(`
     <div class="modal-header"><h3>🎉 Confirmá tu reserva</h3><button class="modal-close">✕</button></div>
@@ -3667,10 +4027,11 @@ function manejarReservaCumpleForm(e){
         <div class="modal-detail-row" style="border:none; padding:4px 0;"><span>Participan de la actividad</span><span>${participan}</span></div>
         ${variante && variante.consumicionMinima ? `<div class="modal-detail-row" style="border:none; padding:4px 0;"><span>Consumición mínima</span><span>${formatoMoneda(variante.consumicionMinima)} por persona</span></div>` : ''}
       </div>
+      ${bonificadas > 0 ? `<div class="promo-destacada">🎉 <strong>${config.promoCumple.texto}</strong><span>Ya aplicamos el descuento: pagan ${paganSeña} de ${participan} personas.</span></div>` : ''}
       <div class="seña-box">
-        <p>Para reservar la fecha, se solicita una seña de ${formatoMoneda(config.señaPersona)} por persona que participa:</p>
+        <p>Para reservar la fecha, se solicita una seña de ${formatoMoneda(config.señaPersona)} por persona:</p>
         <div class="seña-monto">${formatoMoneda(señaTotal)}</div>
-        <p>Si algún participante no asiste, la seña no es reembolsable</p>
+        ${config.politicaCancelacion ? `<p style="margin-top:8px;">${config.politicaCancelacion}</p>` : ''}
       </div>
     </div>
     <div class="modal-footer" style="flex-direction:column; align-items:stretch;">
@@ -3682,7 +4043,7 @@ function manejarReservaCumpleForm(e){
   modalContent.querySelector('[data-action="confirmar-reserva-cumple"]').addEventListener('click', function(){
     this.disabled = true;
     this.textContent = 'Guardando reserva...';
-    confirmarReservaCumple({ modalidad, variante: variante ? variante.nombre : '', nombre, telefono, fecha, sucursal, horaInicio, ninos, adultos, participan, señaTotal, comentarios });
+    confirmarReservaCumple({ modalidad, variante: variante ? variante.nombre : '', nombre, telefono, fecha, sucursal, horaInicio, ninos, adultos, participan, bonificadas, señaTotal, comentarios });
   });
 }
 
@@ -3703,27 +4064,45 @@ async function confirmarReservaCumple(datos){
 
   agregarNotificacion('🎉', `<strong>${datos.nombre}</strong> reservó "${datos.modalidad}" para el ${formatoFechaLarga(datos.fecha)} a las ${datos.horaInicio}hs`);
 
-  const mensajeWsp = `🎉 Nueva reserva de evento\n\nEvento: ${datos.modalidad}${datos.variante ? ` — ${datos.variante}` : ''}\nFecha: ${formatoFechaLarga(datos.fecha)} · ${datos.horaInicio}hs\nSucursal: ${datos.sucursal}\nCliente: ${datos.nombre}\nTeléfono: ${datos.telefono}\nNiños: ${datos.ninos} · Adultos: ${datos.adultos}\nParticipan de la actividad: ${datos.participan}\nComentarios: ${datos.comentarios || '—'}\nSeña (${formatoMoneda(config.señaPersona)} x ${datos.participan}): ${formatoMoneda(datos.señaTotal)}\nEstado: pendiente de confirmar que se hizo la transferencia`;
+  const mensajeWsp = `🎉 Nueva reserva de evento\n\nEvento: ${datos.modalidad}${datos.variante ? ` — ${datos.variante}` : ''}\nFecha: ${formatoFechaLarga(datos.fecha)} · ${datos.horaInicio}hs\nSucursal: ${datos.sucursal}\nCliente: ${datos.nombre}\nTeléfono: ${datos.telefono}\nNiños: ${datos.ninos} · Adultos: ${datos.adultos}\nParticipan de la actividad: ${datos.participan}\nComentarios: ${datos.comentarios || '—'}\nSeña: ${formatoMoneda(datos.señaTotal)}${datos.bonificadas > 0 ? ` (PROMO aplicada: pagan ${datos.participan - datos.bonificadas} de ${datos.participan})` : ` (${formatoMoneda(config.señaPersona)} x ${datos.participan})`}\nEstado: pendiente de confirmar que se hizo la transferencia`;
   const whatsappSucursal = whatsappDeSucursal(datos.sucursal);
 
   abrirModal(`
-    <div class="modal-header"><h3>✅ ¡Reserva registrada!</h3><button class="modal-close">✕</button></div>
+    <div class="modal-header"><h3>⚠️ Falta un paso</h3><button class="modal-close">✕</button></div>
     <div class="modal-body">
-      <div class="reserva-estado pendiente">
-        <span class="re-icon">⏳</span>
-        <div class="re-text"><strong>Pendiente de confirmar seña</strong><span>Tu evento quedó pre-reservado para el ${formatoFechaLarga(datos.fecha)}</span></div>
+      <div class="paso-pendiente-alerta">
+        <strong>Tu fecha todavía NO está confirmada</strong>
+        <span>Guardamos tus datos, pero la reserva se completa recién cuando nos mandás el comprobante de la seña.</span>
       </div>
-      <p>Ahora hacé la transferencia de la seña y avisale a Dulces Caprichos con el comprobante:</p>
+
+      <div class="pasos-reserva">
+        <div class="paso-reserva">
+          <span class="paso-num">1</span>
+          <div>
+            <strong>Transferí la seña de ${formatoMoneda(datos.señaTotal)}</strong>
+            <span>${formatoMoneda(config.señaPersona)} por cada una de las ${datos.participan} personas que participan</span>
+          </div>
+        </div>
+        <div class="paso-reserva destacado">
+          <span class="paso-num">2</span>
+          <div>
+            <strong>Mandanos el comprobante por WhatsApp</strong>
+            <span>Sin este paso la fecha no queda reservada. El mensaje ya viene escrito, solo tenés que enviarlo y adjuntar el comprobante.</span>
+          </div>
+        </div>
+      </div>
+
+      ${config.politicaCancelacion ? `<p class="politica-cancelacion">📄 ${config.politicaCancelacion}</p>` : ''}
     </div>
-    <div class="modal-footer" style="flex-direction:column; align-items:stretch;">
-      <a class="btn whatsapp-btn" href="${linkWhatsAppDueña(mensajeWsp, whatsappSucursal)}" target="_blank" rel="noopener">💬 Avisar por WhatsApp</a>
-      <button class="btn btn-secondary" data-action="cerrar-modal" style="justify-content:center;">Cerrar</button>
+    <div class="modal-footer" style="flex-direction:column; align-items:stretch; gap:6px;">
+      <a class="btn whatsapp-btn btn-pulsante" href="${linkWhatsAppDueña(mensajeWsp, whatsappSucursal)}" target="_blank" rel="noopener">💬 Enviar comprobante por WhatsApp</a>
+      <button class="btn btn-texto-suave" data-action="cerrar-modal">Lo hago más tarde</button>
     </div>
   `);
 
   document.getElementById('formReservaCumple').reset();
   document.getElementById('rc-seña-monto').textContent = '—';
-  mostrarToast('¡Reserva registrada! Falta confirmar la seña.', '🎉');
+  mostrarToast('¡Casi listo! Falta enviar el comprobante por WhatsApp.', '⚠️');
 }
 
 document.getElementById('formReservaCumple').addEventListener('submit', manejarReservaCumpleForm);
@@ -3817,7 +4196,7 @@ document.addEventListener('click', async (e) => {
     }
     case 'editar-evento': modalEditarEvento(Number(index)); break;
     // Admin: config
-    case 'save-config': mostrarToast('Datos del negocio actualizados', '⚙️'); break;
+    case 'save-config': await guardarConfig(); break;
     case 'eliminar-foto-local': {
       const foto = galeriaLocal[Number(index)];
       try{
@@ -3859,10 +4238,21 @@ const clientShell = document.getElementById('clientShell');
 const adminShell = document.getElementById('adminShell');
 const loginOverlay = document.getElementById('loginOverlay');
 
+/* Firebase recuerda la sesión en el navegador. Guardamos ese estado para
+   que, si la sesión sigue válida, el candado entre directo al panel sin
+   volver a pedir la contraseña — pero sin saltar solo al abrir la página. */
+let haySesionActiva = false;
+
 function mostrarModoCliente(){ clientShell.classList.add('active'); adminShell.classList.remove('active'); window.scrollTo({ top:0 }); }
 function mostrarModoAdmin(){ clientShell.classList.remove('active'); adminShell.classList.add('active'); window.scrollTo({ top:0 }); }
 
 function abrirLogin(){
+  // Si la sesión sigue activa, no hace falta volver a loguearse
+  if(haySesionActiva){
+    mostrarModoAdmin();
+    mostrarToast('Bienvenida, Bel', '👋');
+    return;
+  }
   loginOverlay.classList.add('active');
   document.getElementById('loginError').classList.remove('show');
   document.getElementById('login-email').focus();
@@ -3937,17 +4327,20 @@ async function init(){
   renderModalidadesCumple();
   renderNotificaciones();
 
-  // Footer: link directo al WhatsApp de la dueña para consultas generales
-  document.getElementById('footerWhatsappLink').href = `https://wa.me/${config.whatsappDueña}`;
-
   // Arranca en modo cliente, sin preguntar nada
   mostrarModoCliente();
+
+  // Trae la configuración guardada por la dueña (WhatsApps, seña,
+  // sucursales, política de cancelación) antes de dibujar nada, para que
+  // el sitio muestre los datos reales y no los valores por defecto.
+  await cargarConfigDesdeFirestore();
+  llenarFormularioConfig();
+  aplicarConfigAlSitio();
 
   // Conecta con Firestore: siembra datos si hace falta y activa la
   // sincronización en tiempo real (a partir de acá, renderTodo() se
   // encarga de redibujar cada vez que algo cambia en la base)
   await inicializarFirestore();
-  firestoreListo = true;
   renderTodo();
 
   // Archiva talleres vencidos y borra festejos vencidos. onSnapshot es
@@ -3959,15 +4352,15 @@ async function init(){
     setInterval(limpiarVencidos, 60 * 60 * 1000);
   }, 1500);
 
-  // Mantiene el panel admin sincronizado con el estado real de sesión:
-  // si Belén ya está logueada (por ejemplo, recargó la página estando
-  // en el panel), la lleva directo ahí sin pedirle loguearse de nuevo.
-  let primeraVerificacion = true;
+  // NO saltamos automáticamente al panel admin aunque haya sesión activa.
+  // Firebase recuerda la sesión indefinidamente en el navegador, así que
+  // antes bastaba con haberse logueado una vez para que CUALQUIERA que
+  // abriera la página (incluido un cliente en un dispositivo compartido)
+  // entrara directo al panel. Ahora siempre se ve el sitio público y el
+  // acceso al panel es siempre una decisión explícita (botón del candado),
+  // aunque la sesión siga válida y no haga falta reescribir la contraseña.
   onAuthStateChanged(auth, (usuario) => {
-    if(usuario && primeraVerificacion){
-      mostrarModoAdmin();
-    }
-    primeraVerificacion = false;
+    haySesionActiva = !!usuario;
   });
 }
 

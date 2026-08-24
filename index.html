@@ -472,9 +472,40 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .cal-day.has-events{ cursor:pointer; }
 .cal-day.has-events:hover{ background:#F2D9CB; }
 .cal-day.today{ box-shadow:inset 0 0 0 2px var(--pink-deep); }
+.cal-day-clickeable{ cursor:pointer; }
+.cal-day-clickeable:hover{ background:#F2D9CB; }
+.cal-day-domingo{ background:#EDE4E0; }
 .cal-daynum{ font-size:12px; font-weight:700; color:var(--choc); }
 .cal-event{ font-size:10px; padding:3px 7px; border-radius:7px; color:var(--white); font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .cal-more{ font-size:10px; color:var(--brown); font-weight:600; padding-left:4px; }
+
+/* ---------- Popup de disponibilidad por día (calendario de eventos) ---------- */
+.dia-cerrado-aviso{
+  background:var(--peach-deep); color:var(--choc); font-size:13px;
+  padding:16px; border-radius:12px; text-align:center;
+}
+.dia-sucursal-bloque{
+  padding:14px; border-radius:12px; background:var(--peach); margin-bottom:10px;
+}
+.dia-sucursal-bloque:last-child{ margin-bottom:0; }
+.dia-sucursal-bloque strong{ display:block; font-size:13px; color:var(--choc); margin-bottom:8px; }
+.horarios-pills{ display:flex; gap:6px; flex-wrap:wrap; }
+.horario-pill{
+  font-size:11.5px; font-weight:700; padding:5px 12px; border-radius:20px;
+}
+.horario-pill.libre{ background:var(--sage-bg); color:var(--sage); }
+.sin-horarios-texto{ font-size:12px; color:var(--brown-light); font-style:italic; }
+.ocupados-detalle{ font-size:10.5px; color:var(--brown-light); margin-top:6px; }
+
+.calendario-eventos-leyenda{
+  display:flex; gap:16px; flex-wrap:wrap; margin-bottom:14px;
+}
+.calendario-eventos-leyenda span{
+  display:flex; align-items:center; gap:6px; font-size:11px; color:var(--brown);
+}
+.calendario-eventos-leyenda i{
+  width:9px; height:9px; border-radius:50%; display:inline-block; flex-shrink:0;
+}
 
 /* Puntitos de color: reemplazan el texto de cada evento cuando la celda
    es muy angosta para mostrarlo legible (pantallas chicas) */
@@ -1003,14 +1034,20 @@ tbody tr:last-child td{ border-bottom:none; }
       <div class="section-heading">
         <div>
           <h3>📅 ¿Está libre tu fecha?</h3>
-          <p class="sub">Los días marcados ya tienen un evento o taller reservado en esa sucursal</p>
+          <p class="sub">Tocá un día para ver los horarios disponibles en cada sucursal</p>
         </div>
         <div style="display:flex; gap:8px;">
           <button class="btn btn-secondary btn-sm" id="calPrevCumple">← Anterior</button>
           <button class="btn btn-secondary btn-sm" id="calNextCumple">Siguiente →</button>
         </div>
       </div>
-      <p class="sub" id="calMonthLabelCumple" style="font-size:14px; font-weight:600; color:var(--choc); margin-bottom:12px;">Julio 2026</p>
+      <p class="sub" id="calMonthLabelCumple" style="font-size:14px; font-weight:600; color:var(--choc); margin-bottom:8px;">Julio 2026</p>
+      <div class="calendario-eventos-leyenda">
+        <span><i style="background:var(--brown-light);"></i> Cerrado (domingo)</span>
+        <span><i style="background:var(--danger);"></i> Sin horarios</span>
+        <span><i style="background:#E0A72E;"></i> Algunos horarios libres</span>
+        <span><i style="background:transparent; border:1.5px solid var(--brown-light);"></i> Todo disponible</span>
+      </div>
 
       <div class="card" style="padding:18px; overflow-x:auto; margin-bottom:30px;">
         <div class="calendar-grid mini-calendar" id="calendarGridCumple"></div>
@@ -1938,11 +1975,23 @@ function aplicarConfigAlSitio(){
 }
 
 async function inicializarFirestore(){
-  // Cada siembra se intenta por separado: si una falla (por ejemplo, un
-  // problema de conexión puntual), no debe impedir que el resto de las
-  // colecciones se siembren y, sobre todo, que se activen las escuchas
-  // en tiempo real — sin eso la página queda con datos vacíos aunque
-  // Firestore sí tenga información real.
+  // Antes esto esperaba 6 lecturas de red UNA DETRÁS DE OTRA (para
+  // chequear si hacía falta sembrar datos de ejemplo) antes de activar
+  // las escuchas que traen los datos reales. En una conexión rápida esa
+  // demora casi no se nota, pero en cualquier conexión más lenta esos
+  // milisegundos por lectura se acumulan y pueden convertirse en un
+  // minuto entero de pantalla vacía — que es exactamente lo que estaba
+  // pasando. Ahora las escuchas reales se activan de inmediato, y el
+  // chequeo de siembra (que ya casi nunca hace falta, porque la base
+  // tiene datos reales) corre aparte, en paralelo, sin bloquear nada.
+  escucharColeccion(COL.talleres, (items) => { talleres = items; });
+  escucharColeccion(COL.alumnos, (items) => { alumnos = items; });
+  escucharColeccion(COL.reservasCumple, (items) => { reservasCumple = items; });
+  escucharColeccion(COL.productos, (items) => { productos = items; });
+  escucharColeccion(COL.descuentos, (items) => { descuentos = items; });
+  escucharColeccion(COL.eventos, (items) => { eventos = items; });
+  escucharColeccion(COL.galeriaLocal, (items) => { galeriaLocal = items; });
+
   const siembras = [
     [COL.talleres, SEED_talleres],
     [COL.alumnos, SEED_alumnos],
@@ -1951,21 +2000,13 @@ async function inicializarFirestore(){
     [COL.descuentos, SEED_descuentos],
     [COL.eventos, SEED_eventos],
   ];
-  for(const [nombreColeccion, seed] of siembras){
-    try{
-      await sembrarColeccionSiEstaVacia(nombreColeccion, seed);
-    } catch(error){
+  // En paralelo, no en serie: cada siembra ya es independiente entre sí,
+  // así que no hay motivo para esperar una para empezar la siguiente.
+  await Promise.all(siembras.map(([nombreColeccion, seed]) =>
+    sembrarColeccionSiEstaVacia(nombreColeccion, seed).catch(error => {
       console.error(`Error al sembrar datos iniciales de "${nombreColeccion}":`, error);
-    }
-  }
-
-  escucharColeccion(COL.talleres, (items) => { talleres = items; });
-  escucharColeccion(COL.alumnos, (items) => { alumnos = items; });
-  escucharColeccion(COL.reservasCumple, (items) => { reservasCumple = items; });
-  escucharColeccion(COL.productos, (items) => { productos = items; });
-  escucharColeccion(COL.descuentos, (items) => { descuentos = items; });
-  escucharColeccion(COL.eventos, (items) => { eventos = items; });
-  escucharColeccion(COL.galeriaLocal, (items) => { galeriaLocal = items; });
+    })
+  ));
 }
 
 /* ================================================================
@@ -2316,7 +2357,15 @@ let calAnioCliente = _hoyInicial.getFullYear();
 let calMesCumple = _hoyInicial.getMonth();
 let calAnioCumple = _hoyInicial.getFullYear();
 const nombresMeses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-const diasSemana = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+// Empieza en lunes (no domingo), como pidió la dueña.
+const diasSemana = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+
+/* Date.getDay() devuelve 0=domingo...6=sábado. Como en toda la página
+   la semana arranca en lunes, esto lo convierte a 0=lunes...6=domingo
+   para que las grillas de calendario se dibujen con el offset correcto. */
+function getDayLunesPrimero(fecha){
+  return (fecha.getDay() + 6) % 7;
+}
 
 function eventosDelMes(mes, anio, { soloTipo=null, incluirArchivados=false } = {}){
   // Combina talleres + reservas de cumpleaños en un mapa día -> eventos
@@ -2368,7 +2417,7 @@ function renderLeyendaSucursales(elId){
 
 function construirCalendarioHTML(mes, anio, gridId, { clickable=false, soloTipo=null, incluirArchivados=false } = {}){
   const grid = document.getElementById(gridId);
-  const primerDia = new Date(anio, mes, 1).getDay();
+  const primerDia = getDayLunesPrimero(new Date(anio, mes, 1));
   const diasEnMes = new Date(anio, mes + 1, 0).getDate();
   const hoy = new Date();
   const esMesActual = hoy.getFullYear() === anio && hoy.getMonth() === mes;
@@ -2380,6 +2429,7 @@ function construirCalendarioHTML(mes, anio, gridId, { clickable=false, soloTipo=
   for(let d=1; d<=diasEnMes; d++){
     const eventosDia = eventos[d] || [];
     const esHoy = esMesActual && hoy.getDate() === d;
+    const esDomingo = new Date(anio, mes, d).getDay() === 0;
     const eventosHtml = eventosDia.slice(0,2).map(e => {
       const suc = datosSucursal(e.ref.sucursal);
       const colorSuc = suc ? suc.colorMarca : 'transparent';
@@ -2398,7 +2448,7 @@ function construirCalendarioHTML(mes, anio, gridId, { clickable=false, soloTipo=
     const clickAttr = (clickable && eventosDia.length > 0) ? `data-caldia="${d}" data-calmes="${mes}" data-calanio="${anio}"` : '';
     const clickClass = (clickable && eventosDia.length > 0) ? 'has-events' : '';
     html += `
-      <div class="cal-day ${esHoy ? 'today' : ''} ${clickClass}" ${clickAttr}>
+      <div class="cal-day ${esHoy ? 'today' : ''} ${clickClass} ${esDomingo ? 'cal-day-domingo' : ''}" ${clickAttr}>
         <div class="cal-daynum">${d}</div>
         ${eventosHtml}
         ${masHtml}
@@ -2442,45 +2492,124 @@ function renderCalendarioCliente(){
    los 3 horarios fijos de evento (11, 14, 17hs) está libre ese día en
    la sucursal — si queda al menos un horario, el día se puede reservar. */
 
-function diaSinHorariosLibres(fechaISO, sucursal){
-  return horariosEventoDisponibles(fechaISO, sucursal).length === 0;
+/* Estado de disponibilidad de UN día, considerando las DOS sucursales
+   a la vez (ya no depende de que el cliente elija una primero). Sirve
+   tanto para pintar el calendario como para el popup al tocar un día.
+   Devuelve: { tipo, sucursales: [{ nombre, libres:[...], ocupados:[...] }] } */
+function estadoDelDia(fechaISO){
+  const fecha = new Date(fechaISO + 'T00:00:00');
+  if(fecha.getDay() === 0){
+    return { tipo: 'domingo', sucursales: [] };
+  }
+
+  const sucursales = config.sucursales.map(s => {
+    const libres = horariosEventoDisponibles(fechaISO, s.nombre);
+    const ocupados = HORARIOS_EVENTO.filter(h => !libres.includes(h));
+    // A qué se debe cada horario ocupado (taller o evento), para mostrarlo
+    const detalleOcupados = ocupados.map(h => {
+      const conflicto = horarioOcupadoEnSucursal(fechaISO, h, DURACION_EVENTO_HORAS, s.nombre);
+      return { hora: h, motivo: conflicto ? conflicto.nombre : null };
+    });
+    return { nombre: s.nombre, libres, ocupados: detalleOcupados };
+  });
+
+  const totalLibres = sucursales.reduce((acc, s) => acc + s.libres.length, 0);
+  const totalHorarios = sucursales.length * HORARIOS_EVENTO.length;
+
+  let tipo;
+  if(totalLibres === 0) tipo = 'lleno';
+  else if(totalLibres < totalHorarios) tipo = 'parcial';
+  else tipo = 'libre';
+
+  return { tipo, sucursales };
 }
 
-function diasOcupadosCumple(mes, anio, sucursal=null){
-  const dias = new Set();
-  if(!sucursal) return dias; // sin sucursal elegida no se puede calcular por horario
-  const diasEnMes = new Date(anio, mes + 1, 0).getDate();
-  for(let d=1; d<=diasEnMes; d++){
-    const fechaISO = `${anio}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    if(diaSinHorariosLibres(fechaISO, sucursal)) dias.add(d);
-  }
-  return dias;
+function diaSinHorariosLibres(fechaISO, sucursal){
+  return horariosEventoDisponibles(fechaISO, sucursal).length === 0;
 }
 
 function renderCalendarioCumple(){
   document.getElementById('calMonthLabelCumple').textContent = `${nombresMeses[calMesCumple]} ${calAnioCumple}`;
   const grid = document.getElementById('calendarGridCumple');
-  const primerDia = new Date(calAnioCumple, calMesCumple, 1).getDay();
+  const primerDia = getDayLunesPrimero(new Date(calAnioCumple, calMesCumple, 1));
   const diasEnMes = new Date(calAnioCumple, calMesCumple + 1, 0).getDate();
   const hoy = new Date();
   const esMesActual = hoy.getFullYear() === calAnioCumple && hoy.getMonth() === calMesCumple;
-  const sucursalSeleccionada = document.getElementById('rc-sucursal')?.value || null;
-  const ocupados = diasOcupadosCumple(calMesCumple, calAnioCumple, sucursalSeleccionada);
+
+  const coloresPorTipo = {
+    domingo: 'var(--brown-light)',
+    lleno: 'var(--danger)',
+    parcial: '#E0A72E',
+    libre: null, // sin marca especial: día libre de verdad
+  };
 
   let html = diasSemana.map(d => `<div class="cal-dow">${d}</div>`).join('');
   for(let i=0; i<primerDia; i++){ html += `<div class="cal-day empty"></div>`; }
 
   for(let d=1; d<=diasEnMes; d++){
     const esHoy = esMesActual && hoy.getDate() === d;
-    const ocupado = ocupados.has(d);
+    const fechaISO = `${calAnioCumple}-${String(calMesCumple+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const estado = estadoDelDia(fechaISO);
+    const color = coloresPorTipo[estado.tipo];
+    const etiqueta = { domingo:'Cerrado', lleno:'Sin horarios', parcial:'Algunos horarios' }[estado.tipo] || '';
+
     html += `
-      <div class="cal-day ${esHoy ? 'today' : ''} ${ocupado ? 'ocupado' : ''}">
+      <div class="cal-day ${esHoy ? 'today' : ''} cal-day-clickeable ${estado.tipo === 'domingo' ? 'cal-day-domingo' : ''}" data-cumple-dia="${fechaISO}">
         <div class="cal-daynum">${d}</div>
-        ${ocupado ? '<div class="cal-event" style="background:var(--danger);">Sin horarios</div>' : ''}
-        ${ocupado ? '<div class="cal-event-dots"><span class="cal-event-dot" style="background:var(--danger);" title="Sin horarios libres"></span></div>' : ''}
+        ${color ? `<div class="cal-event-dots"><span class="cal-event-dot" style="background:${color};" title="${etiqueta}"></span></div>` : ''}
       </div>`;
   }
   grid.innerHTML = html;
+
+  grid.querySelectorAll('[data-cumple-dia]').forEach(el => {
+    el.addEventListener('click', () => modalDisponibilidadDia(el.dataset.cumpleDia));
+  });
+}
+
+/* Popup al tocar un día del calendario de eventos: muestra la
+   disponibilidad real de las dos sucursales, con acceso directo a
+   reservar si queda algún horario libre. */
+function modalDisponibilidadDia(fechaISO){
+  const fecha = new Date(fechaISO + 'T00:00:00');
+  const fechaTexto = fecha.toLocaleDateString('es-AR', { weekday:'long', day:'numeric', month:'long' });
+
+  if(fecha.getDay() === 0){
+    abrirModal(`
+      <div class="modal-header"><h3>📅 ${fechaTexto}</h3><button class="modal-close">✕</button></div>
+      <div class="modal-body">
+        <div class="dia-cerrado-aviso">😴 Los domingos no abrimos. Elegí otro día para tu evento.</div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-secondary" data-action="cerrar-modal">Cerrar</button></div>
+    `);
+    return;
+  }
+
+  const estado = estadoDelDia(fechaISO);
+  const bloquesSucursal = estado.sucursales.map(s => {
+    const libresHtml = s.libres.length
+      ? s.libres.map(h => `<span class="horario-pill libre">${h}hs</span>`).join('')
+      : '<span class="sin-horarios-texto">Sin horarios libres</span>';
+    const ocupadosHtml = s.ocupados.length
+      ? `<p class="ocupados-detalle">${s.ocupados.map(o => `${o.hora}hs — ${o.motivo || 'reservado'}`).join(' · ')}</p>`
+      : '';
+    return `
+      <div class="dia-sucursal-bloque">
+        <strong>${s.nombre.replace('Sucursal ','')}</strong>
+        <div class="horarios-pills">${libresHtml}</div>
+        ${ocupadosHtml}
+      </div>`;
+  }).join('');
+
+  const hayAlgunLibre = estado.sucursales.some(s => s.libres.length > 0);
+
+  abrirModal(`
+    <div class="modal-header"><h3>📅 ${fechaTexto}</h3><button class="modal-close">✕</button></div>
+    <div class="modal-body">${bloquesSucursal}</div>
+    <div class="modal-footer" style="flex-direction:column; align-items:stretch; gap:6px;">
+      ${hayAlgunLibre ? `<button class="btn btn-primary" data-action="ir-a-reservar-dia" data-fecha="${fechaISO}">Reservar este día</button>` : ''}
+      <button class="btn btn-secondary" data-action="cerrar-modal" style="justify-content:center;">Cerrar</button>
+    </div>
+  `);
 }
 
 /* Chequeo de disponibilidad en vivo: actualiza el aviso y el select
@@ -4167,6 +4296,18 @@ document.addEventListener('click', async (e) => {
     // Admin: cumpleaños
     case 'ver-reserva-cumple': modalVerReservaCumple(Number(index)); break;
     case 'eliminar-reserva-cumple': modalConfirmarEliminarReservaCumple(Number(index)); break;
+    case 'ir-a-reservar-dia': {
+      cerrarModal();
+      const fechaInput = document.getElementById('rc-fecha');
+      if(fechaInput){
+        fechaInput.value = target.dataset.fecha;
+        chequearDisponibilidadFecha();
+        setTimeout(() => {
+          document.getElementById('formReservaCumple')?.scrollIntoView({ behavior:'smooth', block:'start' });
+        }, 250);
+      }
+      break;
+    }
     case 'toggle-seña-cumple': {
       const r = reservasCumple[Number(index)];
       const nuevaSeña = r.señaEstado === "Cobrada" ? "Pendiente" : "Cobrada";
@@ -4330,18 +4471,17 @@ async function init(){
   // Arranca en modo cliente, sin preguntar nada
   mostrarModoCliente();
 
-  // Trae la configuración guardada por la dueña (WhatsApps, seña,
-  // sucursales, política de cancelación) antes de dibujar nada, para que
-  // el sitio muestre los datos reales y no los valores por defecto.
-  await cargarConfigDesdeFirestore();
-  llenarFormularioConfig();
-  aplicarConfigAlSitio();
+  // Activa de inmediato las escuchas de talleres, eventos, productos,
+  // etc. — es lo primero que tiene que verse en pantalla, así que no
+  // debe esperar a nada más. La configuración del negocio (WhatsApps,
+  // textos, sucursales) se trae en paralelo: cuando llegue, se aplica
+  // sola sin haber demorado la aparición del resto del contenido.
+  inicializarFirestore();
 
-  // Conecta con Firestore: siembra datos si hace falta y activa la
-  // sincronización en tiempo real (a partir de acá, renderTodo() se
-  // encarga de redibujar cada vez que algo cambia en la base)
-  await inicializarFirestore();
-  renderTodo();
+  cargarConfigDesdeFirestore().then(() => {
+    llenarFormularioConfig();
+    aplicarConfigAlSitio();
+  });
 
   // Archiva talleres vencidos y borra festejos vencidos. onSnapshot es
   // asíncrono, así que se espera un instante a que llegue la primera

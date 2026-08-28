@@ -1094,6 +1094,7 @@ tbody tr:last-child td{ border-bottom:none; }
             <div class="form-group"><label>Cantidad de niños</label><input type="number" id="rc-ninos" placeholder="0" min="0" value="0" required></div>
             <div class="form-group"><label>Cantidad de adultos</label><input type="number" id="rc-adultos" placeholder="0" min="0" value="0" required></div>
           </div>
+          <p class="form-hint" id="rc-aforo-aviso" style="display:none;"></p>
           <div class="form-group">
             <label>¿Cuántos hacen la actividad?</label>
             <input type="number" id="rc-participan" placeholder="Ej: 8" min="1" required>
@@ -1559,25 +1560,28 @@ let config = {
   politicaCancelacion: "La seña no es reembolsable si algún participante no asiste. Para reprogramar, avisanos con anticipación por WhatsApp.",
   // Promo vigente: si participan al menos X personas, una no paga la
   // actividad (pensada para el cumpleañero). Tiene fecha de vencimiento
-  // para que deje de aplicarse sola sin tener que acordarse de sacarla.
+  // para que deje de aplicarse sola sin tener que acordarse de sacarla,
+  // y aplica solo a la sucursal indicada (null = todas).
   promoCumple: {
     activa: true,
     minimoPersonas: 8,
     vigenteHasta: "2026-09-30",
     texto: "Si son 8 o más, ¡el cumpleañero no paga la actividad!",
+    sucursal: "Sucursal 25 de Mayo",
   },
   sucursales: [
-    { nombre:"Sucursal Santa Fe", direccion:"Santa Fe 3097, esq. Avellaneda", whatsapp:"542235969835", colorMarca:"#7B93B0", aforo:"8 a 10 personas" },
-    { nombre:"Sucursal 25 de Mayo", direccion:"25 de Mayo 2954", whatsapp:"5492236965567", colorMarca:"#B4884A", aforo:"Hasta 12 personas" },
+    { nombre:"Sucursal Santa Fe", direccion:"Santa Fe 3097, esq. Avellaneda", whatsapp:"542235969835", colorMarca:"#7B93B0", aforo:"Hasta 8 personas", aforoMax:8 },
+    { nombre:"Sucursal 25 de Mayo", direccion:"25 de Mayo 2954", whatsapp:"5492236965567", colorMarca:"#B4884A", aforo:"Hasta 12 personas", aforoMax:12 },
   ],
 };
 
 /* Evalúa si la promo de cumpleaños aplica para esa cantidad de
    participantes, considerando también si sigue vigente por fecha.
    Devuelve cuántas personas quedan exentas de pagar (0 si no aplica). */
-function personasBonificadasPorPromo(participan){
+function personasBonificadasPorPromo(participan, sucursal=null){
   const promo = config.promoCumple;
   if(!promo || !promo.activa) return 0;
+  if(promo.sucursal && sucursal && promo.sucursal !== sucursal) return 0;
   if(promo.vigenteHasta){
     const hoy = new Date(); hoy.setHours(0,0,0,0);
     const limite = new Date(promo.vigenteHasta + 'T23:59:59');
@@ -1845,6 +1849,23 @@ async function sembrarColeccionSiEstaVacia(nombreColeccion, datosSemilla){
   await setDoc(marcaRef, { sembrado: true, fecha: new Date().toISOString() });
 }
 
+let avisoDeErrorFirestoreYaMostrado = false;
+
+/* Traduce el código de error de Firebase a un mensaje que explica qué
+   pasó de verdad, en vez de un genérico "revisá tu conexión" que no
+   ayuda a diagnosticar nada. Los códigos más comunes:
+   - resource-exhausted: se agotó la cuota gratuita del día
+   - permission-denied: las reglas de seguridad de Firestore bloquean el acceso
+   - unavailable: problema de red real (sin conexión, servidor caído) */
+function mensajeErrorFirestore(error){
+  const mapa = {
+    'resource-exhausted': 'Se alcanzó el límite de uso gratuito de la base de datos por hoy. Los datos van a volver a aparecer solos más tarde, o se puede activar un plan pago en Firebase para levantar el límite.',
+    'permission-denied': 'La base de datos está rechazando el acceso por un tema de permisos (reglas de seguridad de Firestore). Esto no se soluciona solo — hay que revisarlo en la consola de Firebase.',
+    'unavailable': 'No hay conexión con la base de datos en este momento. Revisá tu internet.',
+  };
+  return mapa[error.code] || `No se pudo conectar con la base de datos (${error.code || 'error desconocido'}).`;
+}
+
 function escucharColeccion(nombreColeccion, alActualizar){
   onSnapshot(collection(db, nombreColeccion), (snap) => {
     const items = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
@@ -1858,7 +1879,14 @@ function escucharColeccion(nombreColeccion, alActualizar){
     renderTodo();
   }, (error) => {
     console.error(`Error escuchando ${nombreColeccion}:`, error);
-    mostrarToast(`No se pudo conectar con la base de datos (${nombreColeccion}). Revisá tu conexión.`, '⚠️');
+    // Si TODAS las colecciones fallan a la vez (típico de cuota excedida
+    // o reglas mal configuradas), no tiene sentido mostrar 7 avisos
+    // apilados tapando la pantalla — con uno solo alcanza para avisar.
+    if(!avisoDeErrorFirestoreYaMostrado){
+      avisoDeErrorFirestoreYaMostrado = true;
+      mostrarToast(mensajeErrorFirestore(error), '⚠️');
+      setTimeout(() => { avisoDeErrorFirestoreYaMostrado = false; }, 30000);
+    }
   });
 }
 
@@ -1967,9 +1995,10 @@ function aplicarConfigAlSitio(){
   const promoWrap = document.getElementById('promoCumpleWrap');
   if(promoWrap){
     const promo = config.promoCumple;
-    const vigente = promo && promo.activa && personasBonificadasPorPromo(promo.minimoPersonas || 8) > 0;
+    const vigente = promo && promo.activa && personasBonificadasPorPromo(promo.minimoPersonas || 8, promo.sucursal) > 0;
+    const aclaracionSucursal = promo?.sucursal ? ` Solo en ${promo.sucursal.replace('Sucursal ','')}.` : '';
     promoWrap.innerHTML = vigente
-      ? `<div class="promo-destacada promo-banner">🎉 <strong>${promo.texto}</strong><span>Promo vigente hasta el ${formatoFechaLarga(promo.vigenteHasta)}. El descuento se aplica solo al reservar.</span></div>`
+      ? `<div class="promo-destacada promo-banner">🎉 <strong>${promo.texto}</strong><span>Promo vigente hasta el ${formatoFechaLarga(promo.vigenteHasta)}.${aclaracionSucursal} El descuento se aplica solo al reservar.</span></div>`
       : '';
   }
 }
@@ -2153,7 +2182,8 @@ function renderFiltrosSucursalAdmin(){
 
 function renderTalleres(){
   const todosActivos = talleres.filter(t => (t.estado || 'activo') === 'activo');
-  const activos = sucursalActivaAdmin === "Todas" ? todosActivos : todosActivos.filter(t => t.sucursal === sucursalActivaAdmin);
+  const activos = (sucursalActivaAdmin === "Todas" ? todosActivos : todosActivos.filter(t => t.sucursal === sucursalActivaAdmin))
+    .slice().sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
   const archivados = talleres.filter(t => t.estado === 'archivado');
 
   const grid = document.getElementById('talleresGrid');
@@ -2640,7 +2670,7 @@ function chequearDisponibilidadFecha(){
     selectHorario.innerHTML = disponibles.map(h => `<option value="${h}">${h} hs</option>`).join('');
   }
 }
-document.getElementById('rc-sucursal')?.addEventListener('change', () => { chequearDisponibilidadFecha(); renderCalendarioCumple(); });
+document.getElementById('rc-sucursal')?.addEventListener('change', () => { chequearDisponibilidadFecha(); renderCalendarioCumple(); recalcularSeñaFormulario(); });
 
 
 function modalEventosDelDia(dia, mes, anio){
@@ -2859,25 +2889,41 @@ function rangosSeSuperponen(rangoA, rangoB){
 
 /* Devuelve la actividad (taller o evento) con la que choca el horario
    propuesto en esa fecha/sucursal, o null si está libre. excluirTallerId
-   permite editar un taller sin que choque consigo mismo. */
-function horarioOcupadoEnSucursal(fechaISO, horaInicio, duracionHoras, sucursal, excluirTallerId=null){
-  const rangoNuevo = rangoConMargen(horaInicio, duracionHoras);
+   permite editar un taller sin que choque consigo mismo.
 
+   Importante: el margen de 1 hora de colchón sólo aplica contra
+   TALLERES, porque un taller no tiene horario de salida fijo y hace
+   falta ese resguardo. Entre dos EVENTOS no hace falta margen extra:
+   los 3 horarios fijos (11, 14, 17hs) ya están espaciados a propósito
+   para que uno termine justo cuando empieza el siguiente. Antes se
+   aplicaba el mismo margen en ambos casos, lo que hacía que un taller
+   de duración larga (por ejemplo 4 horas al mediodía) terminara
+   bloqueando el día entero aunque en la práctica quedara lugar de sobra
+   antes o después para un evento. */
+function horarioOcupadoEnSucursal(fechaISO, horaInicio, duracionHoras, sucursal, excluirTallerId=null){
+  const rangoSinMargenNuevo = [horaAMinutos(horaInicio), horaAMinutos(horaInicio) + duracionHoras * 60];
+
+  // Contra talleres: el margen de 1 hora lo aporta el TALLER (que no
+  // tiene horario de salida fijo), no hace falta que el evento/taller
+  // que se está evaluando también sume su propio margen — si no, el
+  // colchón termina siendo el doble de lo pactado (2 horas en vez de 1).
   const tallerEnConflicto = talleres.find(t =>
     t._id !== excluirTallerId &&
     (t.estado || 'activo') === 'activo' &&
     t.sucursal === sucursal &&
     t.fecha === fechaISO &&
-    rangosSeSuperponen(rangoNuevo, rangoConMargen(t.hora, Number(t.duracionHoras) || 4))
+    rangosSeSuperponen(rangoSinMargenNuevo, rangoConMargen(t.hora, Number(t.duracionHoras) || 4))
   );
   if(tallerEnConflicto) return { nombre: tallerEnConflicto.nombre, horaInicio: tallerEnConflicto.hora };
 
+  // Contra otros eventos: NO se aplica margen extra, se comparan los
+  // horarios reales — ya vienen espaciados por diseño.
   const eventoEnConflicto = reservasCumple.find(r =>
     r.estado !== 'Cancelado' &&
     r.estado !== 'Archivado' &&
     r.sucursal === sucursal &&
     r.fecha === fechaISO &&
-    rangosSeSuperponen(rangoNuevo, rangoConMargen(r.horaInicio || '11:00', DURACION_EVENTO_HORAS))
+    rangosSeSuperponen(rangoSinMargenNuevo, [horaAMinutos(r.horaInicio || '11:00'), horaAMinutos(r.horaInicio || '11:00') + DURACION_EVENTO_HORAS * 60])
   );
   if(eventoEnConflicto) return { nombre: eventoEnConflicto.modalidad, horaInicio: eventoEnConflicto.horaInicio || '11:00' };
 
@@ -3006,6 +3052,7 @@ function modalEditarTaller(index){
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" data-action="eliminar-taller" data-index="${index}" style="color:var(--danger);">🗑️ Eliminar taller</button>
+      <button class="btn btn-secondary" data-action="archivar-taller-manual" data-index="${index}">🗄️ Archivar (no se hace)</button>
       <button class="btn btn-secondary" data-action="cerrar-modal">Cancelar</button>
       <button class="btn btn-primary" data-action="guardar-edicion-taller" data-index="${index}">Guardar cambios</button>
     </div>
@@ -3050,6 +3097,16 @@ function modalEditarTaller(index){
   });
   modalContent.querySelector('[data-action="eliminar-taller"]').addEventListener('click', () => {
     modalConfirmarEliminarTaller(index);
+  });
+  modalContent.querySelector('[data-action="archivar-taller-manual"]').addEventListener('click', async () => {
+    try{
+      await updateDoc(doc(db, COL.talleres, t._id), { estado: 'archivado', cuposOcupados: 0 });
+      cerrarModal();
+      mostrarToast('Taller archivado. Podés reactivarlo cuando quieras volver a dictarlo.', '🗄️');
+    } catch(error){
+      console.error('Error al archivar el taller:', error);
+      mostrarToast('No se pudo archivar el taller. Intentá de nuevo.', '⚠️');
+    }
   });
 }
 
@@ -3590,25 +3647,114 @@ function modalConfirmarEliminarReservaCumple(index){
 
 function modalVerReservaCumple(index){
   const r = reservasCumple[index];
+  const esArchivada = r.estado === 'Archivado';
   abrirModal(`
-    <div class="modal-header"><h3>Detalle del evento</h3><button class="modal-close">✕</button></div>
+    <div class="modal-header"><h3>${esArchivada ? 'Detalle del evento' : '✏️ Editar reserva'}</h3><button class="modal-close">✕</button></div>
     <div class="modal-body">
-      <div class="modal-detail-row"><span>Cliente</span><span>${r.cliente}</span></div>
-      <div class="modal-detail-row"><span>Teléfono</span><span>${r.telefono || '—'}</span></div>
-      <div class="modal-detail-row"><span>Evento</span><span>${r.modalidad}</span></div>
-      ${r.variante ? `<div class="modal-detail-row"><span>Opción</span><span>${r.variante}</span></div>` : ''}
-      <div class="modal-detail-row"><span>Fecha</span><span>${formatoFechaLarga(r.fecha)}${r.horaInicio ? ` · ${r.horaInicio}hs` : ''}</span></div>
-      <div class="modal-detail-row"><span>Sucursal</span><span>${r.sucursal}</span></div>
-      ${r.participan != null ? `
-        <div class="modal-detail-row"><span>Niños</span><span>${r.ninos || 0}</span></div>
-        <div class="modal-detail-row"><span>Adultos</span><span>${r.adultos || 0}</span></div>
-        <div class="modal-detail-row"><span>Participan de la actividad</span><span>${r.participan}</span></div>
-      ` : `<div class="modal-detail-row"><span>Invitados</span><span>${r.invitados || '—'}</span></div>`}
-      <div class="modal-detail-row"><span>Seña</span><span>${r.señaEstado}</span></div>
-      <div class="modal-detail-row"><span>Estado</span><span>${r.estado}</span></div>
+      <div class="form-group"><label>Cliente</label><input type="text" id="er-cliente" value="${r.cliente}" ${esArchivada ? 'disabled' : ''}></div>
+      <div class="form-group"><label>Teléfono</label><input type="tel" id="er-telefono" value="${r.telefono || ''}" ${esArchivada ? 'disabled' : ''}></div>
+      <div class="form-row">
+        <div class="form-group"><label>Fecha</label><input type="date" id="er-fecha" value="${r.fecha}" ${esArchivada ? 'disabled' : ''}></div>
+        <div class="form-group"><label>Horario</label>
+          <select id="er-horario" ${esArchivada ? 'disabled' : ''}>
+            ${HORARIOS_EVENTO.map(h => `<option value="${h}" ${h === r.horaInicio ? 'selected' : ''}>${h} hs</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label>Sucursal</label>
+        <select id="er-sucursal" ${esArchivada ? 'disabled' : ''}>${opcionesSucursalHTML(r.sucursal)}</select>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Niños</label><input type="number" id="er-ninos" value="${r.ninos || 0}" min="0" ${esArchivada ? 'disabled' : ''}></div>
+        <div class="form-group"><label>Adultos</label><input type="number" id="er-adultos" value="${r.adultos || 0}" min="0" ${esArchivada ? 'disabled' : ''}></div>
+      </div>
+      <div class="form-group"><label>Participan de la actividad</label><input type="number" id="er-participan" value="${r.participan || 0}" min="1" ${esArchivada ? 'disabled' : ''}></div>
+      <div class="form-group"><label>Evento</label><input type="text" value="${r.modalidad}${r.variante ? ' — ' + r.variante : ''}" disabled></div>
+      <p class="form-hint">El evento/opción elegida no se puede cambiar acá — si hace falta, lo mejor es cancelar y crear una reserva nueva.</p>
+      <div class="form-row">
+        <div class="form-group"><label>Estado de la seña</label>
+          <select id="er-señaestado" ${esArchivada ? 'disabled' : ''}>
+            <option ${r.señaEstado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+            <option ${r.señaEstado === 'Cobrada' ? 'selected' : ''}>Cobrada</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Estado de la reserva</label>
+          <select id="er-estado" ${esArchivada ? 'disabled' : ''}>
+            <option ${r.estado === 'Pendiente de seña' ? 'selected' : ''}>Pendiente de seña</option>
+            <option ${r.estado === 'Confirmado' ? 'selected' : ''}>Confirmado</option>
+            <option ${r.estado === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
+          </select>
+        </div>
+      </div>
+      <p class="form-hint" id="er-aviso" style="display:none;"></p>
     </div>
-    <div class="modal-footer"><button class="btn btn-secondary" data-action="cerrar-modal">Cerrar</button></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-action="cerrar-modal">Cerrar</button>
+      ${esArchivada ? '' : `<button class="btn btn-primary" data-action="guardar-edicion-reserva" data-index="${index}">Guardar cambios</button>`}
+    </div>
   `);
+
+  if(esArchivada) return;
+
+  modalContent.querySelector('[data-action="guardar-edicion-reserva"]').addEventListener('click', async () => {
+    const avisoEl = document.getElementById('er-aviso');
+    avisoEl.style.display = 'none';
+
+    const cambios = {
+      cliente: document.getElementById('er-cliente').value.trim() || r.cliente,
+      telefono: document.getElementById('er-telefono').value.trim(),
+      fecha: document.getElementById('er-fecha').value,
+      horaInicio: document.getElementById('er-horario').value,
+      sucursal: document.getElementById('er-sucursal').value,
+      ninos: Number(document.getElementById('er-ninos').value) || 0,
+      adultos: Number(document.getElementById('er-adultos').value) || 0,
+      participan: Number(document.getElementById('er-participan').value) || 1,
+      señaEstado: document.getElementById('er-señaestado').value,
+      estado: document.getElementById('er-estado').value,
+    };
+
+    // Si cambió fecha, horario o sucursal, revalidar que no choque con
+    // otra cosa (excluyendo esta misma reserva de la comparación).
+    const cambioHorario = cambios.fecha !== r.fecha || cambios.horaInicio !== r.horaInicio || cambios.sucursal !== r.sucursal;
+    if(cambioHorario){
+      const otrasReservas = reservasCumple.filter((_, i) => i !== index);
+      const chocaConOtra = otrasReservas.some(otra =>
+        otra.estado !== 'Cancelado' && otra.estado !== 'Archivado' &&
+        otra.sucursal === cambios.sucursal && otra.fecha === cambios.fecha &&
+        otra.horaInicio === cambios.horaInicio
+      );
+      const chocaConTaller = talleres.some(t =>
+        (t.estado || 'activo') === 'activo' && t.sucursal === cambios.sucursal && t.fecha === cambios.fecha &&
+        rangosSeSuperponen(
+          [horaAMinutos(cambios.horaInicio), horaAMinutos(cambios.horaInicio) + DURACION_EVENTO_HORAS * 60],
+          rangoConMargen(t.hora, Number(t.duracionHoras) || 4)
+        )
+      );
+      if(chocaConOtra || chocaConTaller){
+        avisoEl.textContent = '⚠️ Ese horario/sucursal ya está ocupado por otra reserva o taller. Elegí otro.';
+        avisoEl.style.color = 'var(--danger)';
+        avisoEl.style.display = 'block';
+        return;
+      }
+    }
+
+    const sucData = datosSucursal(cambios.sucursal);
+    if(sucData && sucData.aforoMax && (cambios.ninos + cambios.adultos) > sucData.aforoMax){
+      avisoEl.textContent = `⚠️ ${cambios.sucursal} tiene capacidad para ${sucData.aforoMax} personas. Ajustá la cantidad o cambiá de sucursal.`;
+      avisoEl.style.color = 'var(--danger)';
+      avisoEl.style.display = 'block';
+      return;
+    }
+
+    try{
+      await updateDoc(doc(db, COL.reservasCumple, r._id), cambios);
+      cerrarModal();
+      mostrarToast('Reserva actualizada', '✓');
+    } catch(error){
+      console.error('Error al actualizar la reserva:', error);
+      mostrarToast('No se pudieron guardar los cambios. Intentá de nuevo.', '⚠️');
+    }
+  });
 }
 
 /* ================================================================
@@ -3678,7 +3824,7 @@ function renderClienteTalleres(){
   const grid = document.getElementById('clienteTalleresGrid');
   const activos = talleres.filter(t => (t.estado || 'activo') === 'activo');
   const lista = (sucursalActivaCliente === "Todas" ? activos : activos.filter(t => t.sucursal === sucursalActivaCliente))
-    .slice().sort((a,b) => a.fecha.localeCompare(b.fecha));
+    .slice().sort((a,b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
   grid.innerHTML = lista.map((t) => {
     const idx = talleres.indexOf(t);
     const estado = estadoCuposTaller(t);
@@ -4080,7 +4226,8 @@ function actualizarVariantesFormularioReserva(){
 
 function recalcularSeñaFormulario(){
   const participan = Number(document.getElementById('rc-participan')?.value) || 0;
-  const bonificadas = personasBonificadasPorPromo(participan);
+  const sucursalElegida = document.getElementById('rc-sucursal')?.value || null;
+  const bonificadas = personasBonificadasPorPromo(participan, sucursalElegida);
   const pagan = Math.max(0, participan - bonificadas);
   const monto = pagan * config.señaPersona;
 
@@ -4106,6 +4253,29 @@ function recalcularSeñaFormulario(){
 
 document.getElementById('rc-modalidad')?.addEventListener('change', actualizarVariantesFormularioReserva);
 document.getElementById('rc-participan')?.addEventListener('input', recalcularSeñaFormulario);
+
+/* Aviso en vivo si la cantidad de personas supera la capacidad de la
+   sucursal elegida — antes de que el cliente llegue a enviar el formulario */
+function chequearAforoFormulario(){
+  const avisoEl = document.getElementById('rc-aforo-aviso');
+  if(!avisoEl) return;
+  const ninos = Number(document.getElementById('rc-ninos')?.value) || 0;
+  const adultos = Number(document.getElementById('rc-adultos')?.value) || 0;
+  const sucursal = document.getElementById('rc-sucursal')?.value;
+  const sucData = datosSucursal(sucursal);
+  const total = ninos + adultos;
+
+  if(sucData && sucData.aforoMax && total > sucData.aforoMax){
+    avisoEl.textContent = `⚠️ Esa sucursal tiene capacidad para ${sucData.aforoMax} personas (pusiste ${total}). Elegí la otra sucursal o comunicate con el local.`;
+    avisoEl.style.color = 'var(--danger)';
+    avisoEl.style.display = 'block';
+  } else {
+    avisoEl.style.display = 'none';
+  }
+}
+document.getElementById('rc-ninos')?.addEventListener('input', chequearAforoFormulario);
+document.getElementById('rc-adultos')?.addEventListener('input', chequearAforoFormulario);
+document.getElementById('rc-sucursal')?.addEventListener('change', chequearAforoFormulario);
 
 function manejarReservaCumpleForm(e){
   e.preventDefault();
@@ -4133,6 +4303,13 @@ function manejarReservaCumpleForm(e){
     return;
   }
 
+  const totalPersonas = ninos + adultos;
+  const sucData = datosSucursal(sucursal);
+  if(sucData && sucData.aforoMax && totalPersonas > sucData.aforoMax){
+    mostrarToast(`Esa sucursal tiene capacidad para ${sucData.aforoMax} personas y pusiste ${totalPersonas}. Elegí la otra sucursal o comunicate con el local para coordinarlo.`, '⚠️');
+    return;
+  }
+
   const conflicto = horarioOcupadoEnSucursal(fecha, horaInicio, DURACION_EVENTO_HORAS, sucursal);
   if(conflicto){
     mostrarToast(`Ese horario ya no está disponible (choca con "${conflicto.nombre}"). Elegí otro horario.`, '⚠️');
@@ -4140,7 +4317,7 @@ function manejarReservaCumpleForm(e){
     return;
   }
 
-  const bonificadas = personasBonificadasPorPromo(participan);
+  const bonificadas = personasBonificadasPorPromo(participan, sucursal);
   const paganSeña = Math.max(0, participan - bonificadas);
   const señaTotal = paganSeña * config.señaPersona;
 

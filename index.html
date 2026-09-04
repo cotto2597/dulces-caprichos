@@ -1890,6 +1890,44 @@ function escucharColeccion(nombreColeccion, alActualizar){
   });
 }
 
+/* Trae una colección UNA SOLA VEZ (sin dejar una escucha persistente
+   abierta), para las colecciones que no necesitan actualizarse en vivo.
+   Usa el mismo manejo de errores que escucharColeccion. */
+async function leerColeccionUnaVez(nombreColeccion, alActualizar){
+  try{
+    const snap = await getDocs(collection(db, nombreColeccion));
+    const items = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+    alActualizar(items);
+  } catch(error){
+    console.error(`Error leyendo ${nombreColeccion}:`, error);
+    if(!avisoDeErrorFirestoreYaMostrado){
+      avisoDeErrorFirestoreYaMostrado = true;
+      mostrarToast(mensajeErrorFirestore(error), '⚠️');
+      setTimeout(() => { avisoDeErrorFirestoreYaMostrado = false; }, 30000);
+    }
+  }
+}
+
+/* Como alumnos, productos, descuentos, eventos y galeriaLocal ya no se
+   escuchan en tiempo real (para no gastar cuota de más), después de que
+   el admin crea/edita/borra algo en cualquiera de ellas hay que volver
+   a traerla para que el cambio se vea reflejado en la propia sesión de
+   quien lo hizo — si no, Belén tendría que recargar la página a mano
+   después de cada cambio para ver su propio trabajo. */
+async function refrescarColeccionEstatica(nombreColeccion){
+  const destinos = {
+    [COL.alumnos]: (items) => { alumnos = items; },
+    [COL.productos]: (items) => { productos = items; },
+    [COL.descuentos]: (items) => { descuentos = items; },
+    [COL.eventos]: (items) => { eventos = items; },
+    [COL.galeriaLocal]: (items) => { galeriaLocal = items; },
+  };
+  const setter = destinos[nombreColeccion];
+  if(!setter) return;
+  await leerColeccionUnaVez(nombreColeccion, setter);
+  renderTodo();
+}
+
 /* ================================================================
    CONFIGURACIÓN DEL NEGOCIO — persistencia real en Firestore
    ================================================================
@@ -2004,22 +2042,34 @@ function aplicarConfigAlSitio(){
 }
 
 async function inicializarFirestore(){
-  // Antes esto esperaba 6 lecturas de red UNA DETRÁS DE OTRA (para
-  // chequear si hacía falta sembrar datos de ejemplo) antes de activar
-  // las escuchas que traen los datos reales. En una conexión rápida esa
-  // demora casi no se nota, pero en cualquier conexión más lenta esos
-  // milisegundos por lectura se acumulan y pueden convertirse en un
-  // minuto entero de pantalla vacía — que es exactamente lo que estaba
-  // pasando. Ahora las escuchas reales se activan de inmediato, y el
-  // chequeo de siembra (que ya casi nunca hace falta, porque la base
-  // tiene datos reales) corre aparte, en paralelo, sin bloquear nada.
+  // TIEMPO REAL solo donde de verdad importa: talleres (cupos que
+  // cambian todo el tiempo, no puede haber dos personas pisándose el
+  // último lugar) y reservasCumple (la disponibilidad de horarios de
+  // eventos depende de esto al segundo). El resto de las colecciones
+  // (alumnos, productos, descuentos, eventos, galeriaLocal) cambian
+  // ocasionalmente — Belén las edita de vez en cuando desde el panel,
+  // no varias veces por minuto — así que se traen UNA VEZ al cargar la
+  // página en lugar de dejar una conexión persistente abierta.
+  //
+  // Por qué importa esto: cada escucha en tiempo real que queda abierta
+  // se dispara de nuevo (trayendo la colección ENTERA) cada vez que algo
+  // cambia, en TODOS los navegadores conectados en ese momento. Con 7
+  // colecciones en tiempo real y aunque sea una decena de personas con
+  // el sitio abierto a la vez, el consumo se dispara rápido — así se
+  // llegó a superar la cuota gratuita diaria de Firestore con muy poco
+  // tráfico real. Bajar de 7 a 2 escuchas persistentes reduce ese
+  // consumo a menos de un tercio, sin perder tiempo real donde importa.
   escucharColeccion(COL.talleres, (items) => { talleres = items; });
-  escucharColeccion(COL.alumnos, (items) => { alumnos = items; });
   escucharColeccion(COL.reservasCumple, (items) => { reservasCumple = items; });
-  escucharColeccion(COL.productos, (items) => { productos = items; });
-  escucharColeccion(COL.descuentos, (items) => { descuentos = items; });
-  escucharColeccion(COL.eventos, (items) => { eventos = items; });
-  escucharColeccion(COL.galeriaLocal, (items) => { galeriaLocal = items; });
+
+  await Promise.all([
+    leerColeccionUnaVez(COL.alumnos, (items) => { alumnos = items; }),
+    leerColeccionUnaVez(COL.productos, (items) => { productos = items; }),
+    leerColeccionUnaVez(COL.descuentos, (items) => { descuentos = items; }),
+    leerColeccionUnaVez(COL.eventos, (items) => { eventos = items; }),
+    leerColeccionUnaVez(COL.galeriaLocal, (items) => { galeriaLocal = items; }),
+  ]);
+  renderTodo();
 
   const siembras = [
     [COL.talleres, SEED_talleres],
@@ -2616,9 +2666,16 @@ function modalDisponibilidadDia(fechaISO){
 
   const estado = estadoDelDia(fechaISO);
   const bloquesSucursal = estado.sucursales.map(s => {
-    const libresHtml = s.libres.length
-      ? s.libres.map(h => `<span class="horario-pill libre">${h}hs</span>`).join('')
-      : '<span class="sin-horarios-texto">Sin horarios libres</span>';
+    let libresHtml;
+    if(s.libres.length){
+      libresHtml = s.libres.map(h => `<span class="horario-pill libre">${h}hs</span>`).join('');
+    } else {
+      // Sin horarios de los 3 fijos, pero puede haber lugar coordinando
+      // directo — la dueña puede armar reservas fuera de esos horarios.
+      const mensajeWsp = `Hola! Quería preguntar por disponibilidad para un evento el ${fechaTexto} en ${s.nombre.replace('Sucursal ','')}. Vi que no queda ninguno de los 3 horarios habituales libres, ¿tienen algún otro horario posible ese día?`;
+      const linkWsp = linkWhatsAppDueña(mensajeWsp, whatsappDeSucursal(s.nombre));
+      libresHtml = `<span class="sin-horarios-texto">Sin horarios libres — <a href="${linkWsp}" target="_blank" rel="noopener" style="color:var(--pink-deep); font-weight:600;">consultanos por WhatsApp</a></span>`;
+    }
     const ocupadosHtml = s.ocupados.length
       ? `<p class="ocupados-detalle">${s.ocupados.map(o => `${o.hora}hs — ${o.motivo || 'reservado'}`).join(' · ')}</p>`
       : '';
@@ -2649,11 +2706,11 @@ function chequearDisponibilidadFecha(){
   const aviso = document.getElementById('rc-fecha-disponibilidad');
   const selectHorario = document.getElementById('rc-horario');
   const sucursal = document.getElementById('rc-sucursal')?.value || null;
-  if(!inputFecha.value || !sucursal){ aviso.textContent = ''; selectHorario.innerHTML = ''; return; }
+  if(!inputFecha.value || !sucursal){ aviso.innerHTML = ''; selectHorario.innerHTML = ''; return; }
 
   const fecha = new Date(inputFecha.value + 'T00:00:00');
   if(fecha.getDay() === 0){ // domingo
-    aviso.textContent = '⚠️ Los domingos no atendemos. Elegí un día de lunes a sábado.';
+    aviso.innerHTML = '⚠️ Los domingos no atendemos. Elegí un día de lunes a sábado.';
     aviso.style.color = 'var(--danger)';
     selectHorario.innerHTML = '<option value="">Cerrado los domingos</option>';
     return;
@@ -2661,11 +2718,18 @@ function chequearDisponibilidadFecha(){
 
   const disponibles = horariosEventoDisponibles(inputFecha.value, sucursal);
   if(!disponibles.length){
-    aviso.textContent = '⚠️ Ese día no queda ningún horario libre en esa sucursal. Elegí otra fecha.';
+    // No hay ninguno de los 3 horarios fijos libre — pero puede que la
+    // dueña, coordinando directo, sí tenga lugar en otro horario (ella
+    // puede armar reservas fuera de los 3 fijos al editar). Por eso el
+    // aviso ofrece la alternativa de consultar por WhatsApp en vez de
+    // simplemente decir "no hay nada".
+    const mensajeWsp = `Hola! Quería preguntar por disponibilidad para un evento el ${formatoFechaLarga(inputFecha.value)} en ${sucursal.replace('Sucursal ','')}. Vi que no queda ninguno de los 3 horarios habituales libres, ¿tienen algún otro horario posible ese día?`;
+    const linkWsp = linkWhatsAppDueña(mensajeWsp, whatsappDeSucursal(sucursal));
+    aviso.innerHTML = `⚠️ Ese día no queda ninguno de los 3 horarios habituales libre en esa sucursal. Puede que igual haya lugar coordinando directo — <a href="${linkWsp}" target="_blank" rel="noopener" style="color:var(--pink-deep); font-weight:600; text-decoration:underline;">consultanos por WhatsApp</a>.`;
     aviso.style.color = 'var(--danger)';
     selectHorario.innerHTML = '<option value="">Sin horarios disponibles</option>';
   } else {
-    aviso.textContent = `✅ ¡Hay ${disponibles.length} horario(s) disponible(s) ese día!`;
+    aviso.innerHTML = `✅ ¡Hay ${disponibles.length} horario(s) disponible(s) ese día!`;
     aviso.style.color = 'var(--sage)';
     selectHorario.innerHTML = disponibles.map(h => `<option value="${h}">${h} hs</option>`).join('');
   }
@@ -3189,6 +3253,7 @@ function modalNuevoProducto(){
     const imagen = document.getElementById('np-preview').dataset.value || null;
     try{
       await addDoc(collection(db, COL.productos), { nombre, categoria, precio, emoji:"🍰", color:"linear-gradient(135deg,#F3E4CB,#E9CE9E)", imagen });
+      await refrescarColeccionEstatica(COL.productos);
       cerrarModal();
       mostrarToast('Producto agregado al catálogo', '🍰');
     } catch(error){
@@ -3397,6 +3462,7 @@ function modalNuevoEvento(){
     if(!variantes.length){ mostrarToast('Agregá al menos una variante con precio', '⚠️'); return; }
     try{
       await addDoc(collection(db, COL.eventos), { nombre, emoji, color, descripcion, facts, variantes, galeria: fotosState });
+      await refrescarColeccionEstatica(COL.eventos);
       cerrarModal();
       mostrarToast('Evento creado correctamente', '🎉');
     } catch(error){
@@ -3431,6 +3497,7 @@ function modalEditarEvento(index){
     if(!variantes.length){ mostrarToast('Agregá al menos una variante con precio', '⚠️'); return; }
     try{
       await updateDoc(doc(db, COL.eventos, e._id), { nombre, emoji, color, descripcion, facts, variantes, galeria: fotosState });
+      await refrescarColeccionEstatica(COL.eventos);
       cerrarModal();
       mostrarToast('Evento actualizado', '✓');
     } catch(error){
@@ -3445,6 +3512,7 @@ function modalEditarEvento(index){
     }
     try{
       await deleteDoc(doc(db, COL.eventos, e._id));
+      await refrescarColeccionEstatica(COL.eventos);
       cerrarModal();
       mostrarToast('Evento eliminado', '🗑️');
     } catch(error){
@@ -3480,6 +3548,7 @@ function modalEditarProducto(index){
     if(nuevaImagen) cambios.imagen = nuevaImagen;
     try{
       await updateDoc(doc(db, COL.productos, p._id), cambios);
+      await refrescarColeccionEstatica(COL.productos);
       cerrarModal();
       mostrarToast('Producto actualizado', '✓');
     } catch(error){
@@ -3490,6 +3559,7 @@ function modalEditarProducto(index){
   modalContent.querySelector('[data-action="eliminar-producto"]').addEventListener('click', async () => {
     try{
       await deleteDoc(doc(db, COL.productos, p._id));
+      await refrescarColeccionEstatica(COL.productos);
       cerrarModal();
       mostrarToast('Producto eliminado del catálogo', '🗑️');
     } catch(error){
@@ -3538,6 +3608,7 @@ function modalNuevoDescuento(){
     const imagen = document.getElementById('nd-preview').dataset.value || null;
     try{
       await addDoc(collection(db, COL.descuentos), { nombre, colorFondo, colorTexto, titulo, subtitulo, condicion, emoji, imagen });
+      await refrescarColeccionEstatica(COL.descuentos);
       cerrarModal();
       mostrarToast('Descuento creado correctamente', '💳');
     } catch(error){
@@ -3573,6 +3644,7 @@ function modalEditarDescuento(index){
     if(nuevaImagen) cambios.imagen = nuevaImagen;
     try{
       await updateDoc(doc(db, COL.descuentos, d._id), cambios);
+      await refrescarColeccionEstatica(COL.descuentos);
       cerrarModal();
       mostrarToast('Descuento actualizado', '✓');
     } catch(error){
@@ -3583,6 +3655,7 @@ function modalEditarDescuento(index){
   modalContent.querySelector('[data-action="eliminar-descuento"]').addEventListener('click', async () => {
     try{
       await deleteDoc(doc(db, COL.descuentos, d._id));
+      await refrescarColeccionEstatica(COL.descuentos);
       cerrarModal();
       mostrarToast('Descuento eliminado', '🗑️');
     } catch(error){
@@ -3607,6 +3680,7 @@ function modalConfirmarEliminarAlumno(index){
   modalContent.querySelector('[data-action="confirmar-eliminar-alumno"]').addEventListener('click', async () => {
     try{
       await deleteDoc(doc(db, COL.alumnos, a._id));
+      await refrescarColeccionEstatica(COL.alumnos);
       // Si el taller sigue existiendo, libera el cupo que había ocupado
       const t = talleres.find(t => t.nombre === a.taller);
       if(t && t.cuposOcupados > 0){
@@ -3651,14 +3725,14 @@ function modalVerReservaCumple(index){
   abrirModal(`
     <div class="modal-header"><h3>${esArchivada ? 'Detalle del evento' : '✏️ Editar reserva'}</h3><button class="modal-close">✕</button></div>
     <div class="modal-body">
+      ${esArchivada ? '' : '<p class="form-hint" style="margin-bottom:14px;">Como administradora, podés cambiar la fecha, horario y sucursal sin restricciones — el sistema no valida superposición con otras reservas ni con talleres.</p>'}
       <div class="form-group"><label>Cliente</label><input type="text" id="er-cliente" value="${r.cliente}" ${esArchivada ? 'disabled' : ''}></div>
       <div class="form-group"><label>Teléfono</label><input type="tel" id="er-telefono" value="${r.telefono || ''}" ${esArchivada ? 'disabled' : ''}></div>
       <div class="form-row">
         <div class="form-group"><label>Fecha</label><input type="date" id="er-fecha" value="${r.fecha}" ${esArchivada ? 'disabled' : ''}></div>
         <div class="form-group"><label>Horario</label>
-          <select id="er-horario" ${esArchivada ? 'disabled' : ''}>
-            ${HORARIOS_EVENTO.map(h => `<option value="${h}" ${h === r.horaInicio ? 'selected' : ''}>${h} hs</option>`).join('')}
-          </select>
+          <input type="time" id="er-horario" value="${r.horaInicio || '11:00'}" ${esArchivada ? 'disabled' : ''}>
+          <p class="form-hint">Podés poner cualquier horario, no solo los 3 fijos del sitio público.</p>
         </div>
       </div>
       <div class="form-group"><label>Sucursal</label>
@@ -3713,37 +3787,20 @@ function modalVerReservaCumple(index){
       estado: document.getElementById('er-estado').value,
     };
 
-    // Si cambió fecha, horario o sucursal, revalidar que no choque con
-    // otra cosa (excluyendo esta misma reserva de la comparación).
-    const cambioHorario = cambios.fecha !== r.fecha || cambios.horaInicio !== r.horaInicio || cambios.sucursal !== r.sucursal;
-    if(cambioHorario){
-      const otrasReservas = reservasCumple.filter((_, i) => i !== index);
-      const chocaConOtra = otrasReservas.some(otra =>
-        otra.estado !== 'Cancelado' && otra.estado !== 'Archivado' &&
-        otra.sucursal === cambios.sucursal && otra.fecha === cambios.fecha &&
-        otra.horaInicio === cambios.horaInicio
-      );
-      const chocaConTaller = talleres.some(t =>
-        (t.estado || 'activo') === 'activo' && t.sucursal === cambios.sucursal && t.fecha === cambios.fecha &&
-        rangosSeSuperponen(
-          [horaAMinutos(cambios.horaInicio), horaAMinutos(cambios.horaInicio) + DURACION_EVENTO_HORAS * 60],
-          rangoConMargen(t.hora, Number(t.duracionHoras) || 4)
-        )
-      );
-      if(chocaConOtra || chocaConTaller){
-        avisoEl.textContent = '⚠️ Ese horario/sucursal ya está ocupado por otra reserva o taller. Elegí otro.';
-        avisoEl.style.color = 'var(--danger)';
-        avisoEl.style.display = 'block';
-        return;
-      }
-    }
+    // Belén (la administradora) puede editar una reserva a cualquier
+    // fecha, horario o sucursal SIN restricciones de superposición ni
+    // de capacidad — ella conoce el local y puede decidir, por ejemplo,
+    // que en 25 de Mayo entran dos eventos a la vez, o que ese día
+    // puntual hay lugar de sobra aunque el cálculo automático diga que
+    // no. Estas validaciones estrictas siguen aplicando SOLO cuando es
+    // un cliente reservando desde el sitio público, donde nadie está
+    // supervisando cada caso en tiempo real.
 
     const sucData = datosSucursal(cambios.sucursal);
     if(sucData && sucData.aforoMax && (cambios.ninos + cambios.adultos) > sucData.aforoMax){
-      avisoEl.textContent = `⚠️ ${cambios.sucursal} tiene capacidad para ${sucData.aforoMax} personas. Ajustá la cantidad o cambiá de sucursal.`;
-      avisoEl.style.color = 'var(--danger)';
+      avisoEl.textContent = `ℹ️ Aviso: ${cambios.sucursal} tiene una capacidad habitual de ${sucData.aforoMax} personas (vos pusiste ${cambios.ninos + cambios.adultos}). Esto no bloquea el guardado, es solo para que lo tengas presente.`;
+      avisoEl.style.color = 'var(--gold)';
       avisoEl.style.display = 'block';
-      return;
     }
 
     try{
@@ -3980,6 +4037,7 @@ Object.entries(SUFIJO_SUCURSAL).forEach(([sucursalNombre, sufijo]) => {
       try{
         const dataUri = await comprimirImagen(file);
         await addDoc(collection(db, COL.galeriaLocal), { imagen: dataUri, sucursal: sucursalNombre, descripcion: '' });
+        await refrescarColeccionEstatica(COL.galeriaLocal);
       } catch(error){
         console.error('Error al subir foto del local:', error);
         mostrarToast('No se pudo subir la foto. Intentá de nuevo.', '⚠️');
@@ -4445,6 +4503,7 @@ document.addEventListener('click', async (e) => {
       const nuevoEstado = a.señaEstado === "Cobrada" ? "Pendiente" : "Cobrada";
       try{
         await updateDoc(doc(db, COL.alumnos, a._id), { señaEstado: nuevoEstado });
+        await refrescarColeccionEstatica(COL.alumnos);
       } catch(error){
         console.error('Error al actualizar seña de alumno:', error);
         mostrarToast('No se pudo actualizar la seña. Intentá de nuevo.', '⚠️');
@@ -4457,6 +4516,7 @@ document.addEventListener('click', async (e) => {
       const t = talleres[tallerIndex];
       try{
         await deleteDoc(doc(db, COL.alumnos, a._id));
+        await refrescarColeccionEstatica(COL.alumnos);
         // Libera el cupo que había ocupado en el taller
         if(t && t.cuposOcupados > 0){
           await updateDoc(doc(db, COL.talleres, t._id), { cuposOcupados: t.cuposOcupados - 1 });
@@ -4519,6 +4579,7 @@ document.addEventListener('click', async (e) => {
       const foto = galeriaLocal[Number(index)];
       try{
         await deleteDoc(doc(db, COL.galeriaLocal, foto._id));
+        await refrescarColeccionEstatica(COL.galeriaLocal);
       } catch(error){
         console.error('Error al eliminar foto del local:', error);
         mostrarToast('No se pudo eliminar la foto. Intentá de nuevo.', '⚠️');

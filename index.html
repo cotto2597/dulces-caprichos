@@ -1514,7 +1514,7 @@ tbody tr:last-child td{ border-bottom:none; }
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore, collection, doc, onSnapshot, getDocs, getDoc, runTransaction,
+  initializeFirestore, collection, doc, onSnapshot, getDocs, getDoc, runTransaction,
   addDoc, updateDoc, deleteDoc, setDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
@@ -1531,7 +1531,12 @@ const firebaseConfig = {
 };
 
 const firebaseApp = initializeApp(firebaseConfig);
-const db = getFirestore(firebaseApp);
+// Long polling forzado: en muchas redes móviles (y en Safari/iPhone) la
+// conexión en streaming que Firestore usa por defecto queda "colgada"
+// hasta que se da por vencida y recién ahí cambia de método — eso se
+// sentía como "la página carga pero los talleres tardan más de un minuto
+// en aparecer". Con long polling la conexión funciona igual en todos lados.
+const db = initializeFirestore(firebaseApp, { experimentalForceLongPolling: true });
 const auth = getAuth(firebaseApp);
 
 /* Nombres de colecciones en Firestore */
@@ -1596,6 +1601,17 @@ function datosSucursal(nombreSucursal){
 }
 
 /* WhatsApp correspondiente a una sucursal, con fallback al general si no se encuentra */
+/* Un alumno pertenece a un taller por su ID (que nunca cambia). Antes se
+   vinculaban por NOMBRE: si la dueña renombraba un taller, sus inscriptos
+   quedaban "huérfanos" y aparecían como de un taller eliminado. Los
+   registros viejos, sin tallerId, se siguen reconociendo por nombre. */
+function alumnoDeTaller(a, t){
+  return a.tallerId ? a.tallerId === t._id : a.taller === t.nombre;
+}
+function tallerDeAlumno(a){
+  return talleres.find(t => alumnoDeTaller(a, t)) || null;
+}
+
 function whatsappDeSucursal(nombreSucursal){
   const s = datosSucursal(nombreSucursal);
   return (s && s.whatsapp) ? s.whatsapp : config.whatsappDueña;
@@ -1916,7 +1932,6 @@ async function leerColeccionUnaVez(nombreColeccion, alActualizar){
    después de cada cambio para ver su propio trabajo. */
 async function refrescarColeccionEstatica(nombreColeccion){
   const destinos = {
-    [COL.alumnos]: (items) => { alumnos = items; },
     [COL.productos]: (items) => { productos = items; },
     [COL.descuentos]: (items) => { descuentos = items; },
     [COL.eventos]: (items) => { eventos = items; },
@@ -2059,11 +2074,15 @@ async function inicializarFirestore(){
   // llegó a superar la cuota gratuita diaria de Firestore con muy poco
   // tráfico real. Bajar de 7 a 2 escuchas persistentes reduce ese
   // consumo a menos de un tercio, sin perder tiempo real donde importa.
-  escucharColeccion(COL.talleres, (items) => { talleres = items; });
-  escucharColeccion(COL.reservasCumple, (items) => { reservasCumple = items; });
+  escucharColeccion(COL.talleres, (items) => { talleres = items; datosListos.talleres = true; programarLimpieza(); });
+  escucharColeccion(COL.reservasCumple, (items) => { reservasCumple = items; datosListos.reservas = true; programarLimpieza(); });
+  // Alumnos también en tiempo real: sacarlos de ahí fue un error — el
+  // contador de cupos (de talleres) se actualizaba en vivo pero la lista
+  // de inscriptos no, y la dueña veía "2 cupos ocupados, 0 inscriptos".
+  // Son documentos de puro texto, así que casi no suman lecturas.
+  escucharColeccion(COL.alumnos, (items) => { alumnos = items; datosListos.alumnos = true; programarLimpieza(); });
 
   await Promise.all([
-    leerColeccionUnaVez(COL.alumnos, (items) => { alumnos = items; }),
     leerColeccionUnaVez(COL.productos, (items) => { productos = items; }),
     leerColeccionUnaVez(COL.descuentos, (items) => { descuentos = items; }),
     leerColeccionUnaVez(COL.eventos, (items) => { eventos = items; }),
@@ -2106,6 +2125,18 @@ function esFechaPasada(fechaISO){
   return fecha < hoy;
 }
 
+/* La limpieza se re-evalúa cada vez que llegan datos (con una pequeña
+   espera para agrupar varias llegadas seguidas). No gasta cuota de más:
+   sólo escribe si realmente encontró algo vencido sin archivar. */
+const datosListos = { talleres:false, alumnos:false, reservas:false };
+let temporizadorLimpieza = null, intervaloLimpieza = null;
+function programarLimpieza(){
+  if(!datosListos.talleres || !datosListos.alumnos || !datosListos.reservas) return;
+  clearTimeout(temporizadorLimpieza);
+  temporizadorLimpieza = setTimeout(limpiarVencidos, 2000);
+  if(!intervaloLimpieza) intervaloLimpieza = setInterval(limpiarVencidos, 60 * 60 * 1000);
+}
+
 async function limpiarVencidos(){
   // Archivar talleres activos cuya fecha ya pasó
   const talleresVencidos = talleres.filter(t => (t.estado || 'activo') === 'activo' && esFechaPasada(t.fecha));
@@ -2132,10 +2163,8 @@ async function limpiarVencidos(){
 
   // Archivar los inscriptos de talleres que ya pasaron, para que no se
   // mezclen con los alumnos de talleres vigentes en el listado general.
-  const nombresTalleresVencidos = new Set(
-    talleres.filter(t => t.estado === 'archivado' || esFechaPasada(t.fecha)).map(t => t.nombre)
-  );
-  const alumnosVencidos = alumnos.filter(a => !a.archivado && nombresTalleresVencidos.has(a.taller));
+  const talleresTerminados = talleres.filter(t => t.estado === 'archivado' || esFechaPasada(t.fecha));
+  const alumnosVencidos = alumnos.filter(a => !a.archivado && talleresTerminados.some(t => alumnoDeTaller(a, t)));
   for(const a of alumnosVencidos){
     try{
       await updateDoc(doc(db, COL.alumnos, a._id), { archivado: true });
@@ -2254,6 +2283,13 @@ function renderTalleres(){
         <div class="taller-meta">
           <span>📅 ${formatoFechaLarga(t.fecha)} · ${t.hora} hs</span>
           <span>👥 ${t.cuposOcupados}/${t.cupos} cupos ocupados</span>
+          ${(() => {
+            const reales = alumnos.filter(a => alumnoDeTaller(a, t) && !a.archivado).length;
+            return reales !== (Number(t.cuposOcupados) || 0)
+              ? `<span style="color:var(--danger); font-weight:600;">⚠️ Hay ${reales} inscripto(s) pero el contador dice ${t.cuposOcupados}.
+                   <button class="btn btn-secondary btn-sm" style="margin-top:4px;" data-action="corregir-cupos" data-index="${i}">Corregir contador</button></span>`
+              : '';
+          })()}
         </div>
         <div class="cupos-bar"><div class="cupos-fill" style="width:${pct}%;"></div></div>
         <div class="taller-footer">
@@ -2295,7 +2331,7 @@ function renderTalleres(){
 
   const filaAlumno = (a) => {
     const i = alumnos.indexOf(a);
-    const tallerExiste = talleres.some(t => t.nombre === a.taller);
+    const tallerExiste = !!tallerDeAlumno(a);
     return `
     <tr${a.archivado ? ' style="opacity:0.6;"' : ''}>
       <td class="cell-strong">${a.nombre}</td>
@@ -3152,6 +3188,14 @@ function modalEditarTaller(index){
 
     try{
       await updateDoc(doc(db, COL.talleres, t._id), cambios);
+      // Los inscriptos quedan vinculados por ID y con el nombre nuevo, así
+      // no aparecen como "taller eliminado" después de un cambio de nombre.
+      const suyos = alumnos.filter(a => alumnoDeTaller(a, t));
+      for(const a of suyos){
+        if(a.tallerId !== t._id || a.taller !== cambios.nombre){
+          await updateDoc(doc(db, COL.alumnos, a._id), { tallerId: t._id, taller: cambios.nombre });
+        }
+      }
       cerrarModal();
       mostrarToast('Taller actualizado', '✓');
     } catch(error){
@@ -3164,7 +3208,7 @@ function modalEditarTaller(index){
   });
   modalContent.querySelector('[data-action="archivar-taller-manual"]').addEventListener('click', async () => {
     try{
-      await updateDoc(doc(db, COL.talleres, t._id), { estado: 'archivado', cuposOcupados: 0 });
+      await updateDoc(doc(db, COL.talleres, t._id), { estado: 'archivado' });
       cerrarModal();
       mostrarToast('Taller archivado. Podés reactivarlo cuando quieras volver a dictarlo.', '🗄️');
     } catch(error){
@@ -3176,7 +3220,7 @@ function modalEditarTaller(index){
 
 function modalConfirmarEliminarTaller(index){
   const t = talleres[index];
-  const cantidadInscriptos = alumnos.filter(a => a.taller === t.nombre).length;
+  const cantidadInscriptos = alumnos.filter(a => alumnoDeTaller(a, t)).length;
   const avisoInscriptos = cantidadInscriptos > 0
     ? `<p style="color:var(--danger); font-weight:600;">⚠️ Este taller tiene ${cantidadInscriptos} inscripto(s). El registro de inscripción no se borra, pero quedará sin taller asociado.</p>`
     : '';
@@ -3207,7 +3251,7 @@ function modalVerInscriptosTaller(index){
   const t = talleres[index];
   const inscriptos = alumnos
     .map((a, i) => ({ ...a, _indexGlobal: i }))
-    .filter(a => a.taller === t.nombre);
+    .filter(a => alumnoDeTaller(a, t) && !a.archivado);
 
   const filas = inscriptos.map(a => `
     <div class="modal-detail-row" style="align-items:center;">
@@ -3682,7 +3726,7 @@ function modalConfirmarEliminarAlumno(index){
       await deleteDoc(doc(db, COL.alumnos, a._id));
       await refrescarColeccionEstatica(COL.alumnos);
       // Si el taller sigue existiendo, libera el cupo que había ocupado
-      const t = talleres.find(t => t.nombre === a.taller);
+      const t = tallerDeAlumno(a);
       if(t && t.cuposOcupados > 0){
         await updateDoc(doc(db, COL.talleres, t._id), { cuposOcupados: t.cuposOcupados - 1 });
       }
@@ -4206,7 +4250,7 @@ async function confirmarReservaTaller(index, nombre, telefono){
 
       tx.update(tallerRef, { cuposOcupados: ocupados + 1 });
       tx.set(doc(collection(db, COL.alumnos)), {
-        nombre, taller: t.nombre, contacto: telefono, señaEstado: "Pendiente"
+        nombre, taller: t.nombre, tallerId: t._id, contacto: telefono, señaEstado: "Pendiente"
       });
     });
   } catch(error){
@@ -4489,6 +4533,11 @@ document.addEventListener('click', async (e) => {
       const t = talleres[Number(index)];
       try{
         await updateDoc(doc(db, COL.talleres, t._id), { estado: 'activo' });
+        if(!esFechaPasada(t.fecha)){
+          for(const a of alumnos.filter(a => a.archivado && alumnoDeTaller(a, t))){
+            await updateDoc(doc(db, COL.alumnos, a._id), { archivado: false, tallerId: t._id });
+          }
+        }
         mostrarToast('Taller reactivado. Actualizá la fecha para la próxima edición.', '♻️');
         modalEditarTaller(Number(index));
       } catch(error){
@@ -4498,6 +4547,21 @@ document.addEventListener('click', async (e) => {
       break;
     }
     case 'ver-inscriptos-taller': modalVerInscriptosTaller(Number(index)); break;
+    case 'corregir-cupos': {
+      // Iguala el contador de cupos a la cantidad real de inscriptos
+      // activos. Sirve para reparar cualquier desfasaje viejo (por ejemplo,
+      // de inscripciones hechas antes de este arreglo).
+      const t = talleres[Number(index)];
+      const reales = alumnos.filter(a => alumnoDeTaller(a, t) && !a.archivado).length;
+      try{
+        await updateDoc(doc(db, COL.talleres, t._id), { cuposOcupados: reales });
+        mostrarToast(`Contador corregido: ${reales} cupo(s) ocupado(s)`, '✓');
+      } catch(error){
+        console.error('Error al corregir cupos:', error);
+        mostrarToast('No se pudo corregir el contador. Intentá de nuevo.', '⚠️');
+      }
+      break;
+    }
     case 'toggle-seña-alumno': {
       const a = alumnos[Number(index)];
       const nuevoEstado = a.señaEstado === "Cobrada" ? "Pendiente" : "Cobrada";
@@ -4725,10 +4789,10 @@ async function init(){
   // asíncrono, así que se espera un instante a que llegue la primera
   // carga real antes de evaluar qué está vencido. Se repite cada hora
   // por si la pestaña queda abierta varios días.
-  setTimeout(async () => {
-    await limpiarVencidos();
-    setInterval(limpiarVencidos, 60 * 60 * 1000);
-  }, 1500);
+  // (La limpieza automática ahora se dispara sola cuando llegan los datos
+  //  — ver programarLimpieza(). Antes corría a ciegas a los 1,5 segundos:
+  //  en un celular con conexión lenta los talleres todavía no habían
+  //  llegado, así que no archivaba nada y los talleres vencidos quedaban.)
 
   // NO saltamos automáticamente al panel admin aunque haya sesión activa.
   // Firebase recuerda la sesión indefinidamente en el navegador, así que

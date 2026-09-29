@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dulces Caprichos · Pastelería, Talleres y Festejos</title>
+<!-- Ícono de la pestaña del navegador (favicon) y de acceso directo en el celular -->
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -1567,8 +1570,10 @@ let config = {
   // actividad (pensada para el cumpleañero). Tiene fecha de vencimiento
   // para que deje de aplicarse sola sin tener que acordarse de sacarla,
   // y aplica solo a la sucursal indicada (null = todas).
+  // DESACTIVADA: la promo de septiembre terminó. Para una promo nueva,
+  // poner activa en true y ajustar mínimo, fecha, texto y sucursal.
   promoCumple: {
-    activa: true,
+    activa: false,
     minimoPersonas: 8,
     vigenteHasta: "2026-09-30",
     texto: "Si son 8 o más, ¡el cumpleañero no paga la actividad!",
